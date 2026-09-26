@@ -1,0 +1,50 @@
+# ----- Segredos (NUNCA commitar) -----
+.env
+!.env.example
+
+# ----- Ambiente virtual Python -----
+.venv/
+venv/
+env/
+
+# ----- Python -----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ----- Dados locais -----
+data/raw/*
+data/processed/*
+data/exports/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/exports/.gitkeep
+
+# ----- Áudios e arquivos grandes -----
+*.mp3
+*.flac
+*.wav
+*.m4a
+*.aac
+*.ogg
+*.opus
+*.wma
+*.aiff
+*.csv
+*.parquet
+*.sqlite
+*.db
+*.duckdb
+
+# ----- Logs -----
+*.log
+logs/
+
+# ----- IDE e Windows -----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
