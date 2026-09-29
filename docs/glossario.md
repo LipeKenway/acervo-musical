@@ -130,3 +130,16 @@ Regra da casa: palavra nova aprendida = entrada nova aqui.
 - **Branch protection** — regra que só deixa a main receber código
   aprovado e verde. Adiada por decisão (ADR-003).
 - **Badge** — o selinho no README mostrando o status do CI ao mundo.
+
+## FASE 2 — lago moderno
+- **Object storage (armazenamento de objetos)** — cada arquivo é um
+  objeto com endereço (chave), acessado por HTTP via API S3. Analogia:
+  guarda-volumes com ticket, em vez de prateleiras fixas.
+- **Bucket** — a caixa principal do object storage. No projeto:
+  `acervo-musical` no MinIO.
+- **Prefixo** — o começo da chave que funciona como "pasta"
+  (raw/, curated/, gold/). Não é pasta de verdade: é etiqueta no nome.
+- **Endpoint** — o endereço (URL) onde o serviço atende. O boto3 usa
+  `endpoint_url` para falar com o MinIO em vez da AWS.
+- **boto3** — biblioteca oficial da AWS para Python; treinada no MinIO,
+  usada de verdade na Fase 5.

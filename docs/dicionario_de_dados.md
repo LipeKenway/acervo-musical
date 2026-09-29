@@ -13,4 +13,10 @@ Notas:
 
 - **tipo_final** — tipo de lançamento oficial da linha: vem da pasta
   quando ela tem tipo; vem da tag nas famílias de dialeto livre.
+
+- **tipo_origem** — de onde o tipo_final veio: "pasta" ou "tag".
+
+- **tipo_final** — tipo de lançamento oficial da linha: vem da pasta
+  quando ela tem tipo; vem da tag nas famílias de dialeto livre.
+  
 - **tipo_origem** — de onde o tipo_final veio: "pasta" ou "tag".

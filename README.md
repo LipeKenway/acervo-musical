@@ -27,6 +27,13 @@ de dados, documentação viva e decisões registradas como ADRs.
 - Cobertura de tags MOOD/MOVEMENT: 100% nos três containers
 - Reconciliação pasta × tag: 99,6% (fila de revisão documentada, ADR-002)
 
+## Qualidade
+- Porteiro local: pre-commit (ruff + gitleaks) em todo commit
+- Robô na nuvem: GitHub Actions (pytest + ruff + mypy + pip-audit + gitleaks)
+- Vigia: Dependabot semanal (pip + actions)
+- 12 testes unitários de hierarquia e derivados
+- Type hints validados por mypy em todo o código
+
 ## Docs vivas
 `docs/hierarquia.md` · `docs/dicionario_de_dados.md` · `docs/glossario.md` ·
 `docs/stack.md` · ADRs dentro da hierarquia
@@ -46,9 +53,3 @@ FASE 4 Airflow/observabilidade → FASE 5 AWS/Terraform
 ## Segurança
 Segredos apenas em `.env` (fora do Git); biblioteca montada como
 somente leitura; nenhum arquivo de áudio sobe para o repositório.
-
-## Qualidade
-- Porteiro local: pre-commit (ruff + gitleaks) em todo commit
-- Robô na nuvem: GitHub Actions (pytest + ruff + pip-audit + gitleaks)
-- Vigia: Dependabot semanal (pip + actions)
-- 12 testes unitários de hierarquia e derivados

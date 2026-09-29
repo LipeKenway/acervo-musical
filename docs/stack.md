@@ -1,122 +1,95 @@
 # Stack do Projeto Acervo Musical
 
-Inventário de linguagens, ferramentas e práticas do projeto.
-Status: ✅ em uso | ⏳ roadmap (fase) | 🧊 legado (referência) | 🚫 fora de escopo (justificado)
+Inventário vivo de linguagens, ferramentas e práticas.
+Status: ✅ em uso | ⏳ roadmap (fase) | 🧊 legado | 🚫 fora de escopo | ⏸️ adiada por ADR
 
-Números do acervo: 110k+ faixas | 11.201 álbuns | 912,61 GB | 311 dias de áudio
+Números: 110.731 faixas | 912,89 GB | 311,3 dias de áudio
+Repo público: github.com/LipeKenway/acervo-musical
 
 ## 1. Linguagens
-| Linguagem | Uso no projeto | Status |
+| Ferramenta | Uso | Status |
 |---|---|---|
-| Python 3 | Scanner, extrator, DAGs, testes, scripts de carga | ✅ |
-| SQL | Análise (DuckDB), modelagem gold (dbt/Postgres) | ⏳ F2/F3 |
-| PowerShell | Automação local no Windows (setup, ops) | ✅ |
-| YAML | docker-compose, GitHub Actions, projeto dbt | ⏳ F1/F2 |
-| Markdown | README, docs, ADRs, dicionário de dados | ✅ |
+| Python 3 | scanner, extractor, reconciliador, agregados, testes | ✅ |
+| SQL | DuckDB (F2), dbt/Postgres (F3) | ⏳ F2/F3 |
+| PowerShell | automação local | ✅ |
+| YAML | compose, Actions, pre-commit | ✅ |
+| Markdown | docs, ADRs, README | ✅ |
 
 ## 2. Bibliotecas Python
 | Biblioteca | Uso | Status |
 |---|---|---|
-| mutagen | Metadados de áudio: ID3v2.3/v2.4 (MP3), MP4/iTunes (M4A/AAC), Vorbis (FLAC), ASF (WMA) | ✅ |
-| python-dotenv | Segredos via `.env` (fora do Git) | ✅ |
-| pyarrow | Leitura/escrita Parquet | ⏳ F2 |
-| boto3 | Integração S3 | ⏳ F5 |
-| stdlib (os, csv, pathlib, re, collections, datetime, time) | Scanner, inventários, relatórios | ✅ |
+| mutagen | metadados ID3/MP4/Vorbis/ASF | ✅ |
+| python-dotenv | segredos via .env | ✅ |
+| pyarrow | leitura/escrita Parquet | ⏳ F2 |
+| duckdb | SQL direto em Parquet | ⏳ F2 |
+| boto3 | API S3 (MinIO na F2, S3 real na F5) | ⏳ F2 |
+| stdlib (os, csv, pathlib, re, collections, datetime, time) | scanner/relatórios | ✅ |
 
 ## 3. Armazenamento e formatos
 | Ferramenta | Uso | Status |
 |---|---|---|
-| CSV (utf-8-sig) | Bronze/prata e entregáveis legíveis (Excel) | ✅ |
-| Parquet | Formato colunar do lake | ⏳ F2 |
-| MinIO | S3 local (lake raw/curated/gold) | ⏳ F2 |
-| Amazon S3 | Lake real em nuvem (só metadados) | ⏳ F5 |
-| Postgres | Warehouse com star schema | ⏳ F3 |
-| DuckDB | Análise/benchmark sobre Parquet, SQL avançado | ⏳ F2 |
-| MariaDB + SQL Server | Prova multi-banco do v1 | 🧊 |
+| CSV utf-8-sig | bronze/prata/ouro legíveis (Excel) | ✅ |
+| Parquet | lake colunar particionado por década | ⏳ F2 |
+| MinIO | S3 local (zonas raw/curated/gold) | ⏳ F2 |
+| Amazon S3 | lake real (só metadados) | ⏳ F5 |
+| Postgres | warehouse com star schema | ⏳ F3 |
+| DuckDB | análise/benchmark CSV × Parquet | ⏳ F2 |
+| MariaDB + SQL Server | prova multi-banco do v1 | 🧊 |
 
 ## 4. Orquestração, infra e CI/CD
 | Ferramenta | Uso | Status |
 |---|---|---|
-| Docker / Docker Compose | Serviços isolados (Airflow, bancos, MinIO, Metabase) | ⏳ (instalado) |
-| Apache Airflow (TaskFlow API) | Orquestração com retries, backoff e histórico | ⏳ F4 |
-| GitHub Actions | CI: pytest + ruff + mypy + gitleaks a cada PR | ⏳ F1 |
-| pre-commit | Bloqueio local antes do commit (ruff, gitleaks) | ⏳ F1 |
-| Terraform | IaC: bucket S3, lifecycle, block-public, SSE | ⏳ F5 |
-| Dependabot | Monitoramento de dependências | ⏳ F1 |
+| Docker Desktop / compose | caixas isoladas; planta das caixas | ✅ |
+| Personal Access Token (PAT) | push sem senha | ✅ |
+| GitHub Actions | CI: jobs qualidade + seguranca | ✅ |
+| Dependabot | vigia semanal (pip + actions); 2 PRs mergeados | ✅ |
+| pre-commit | porteiro local (ruff + gitleaks) | ✅ |
+| Airflow TaskFlow | orquestração com retries e histórico | ⏳ F4 |
+| Terraform | IaC do S3 | ⏳ F5 |
 
 ## 5. Qualidade, testes e segurança
 | Ferramenta/Prática | Uso | Status |
 |---|---|---|
-| pytest | Testes unitários das funções de limpeza | ⏳ F1 |
-| ruff + mypy | Lint, regras de segurança e type checking | ⏳ F1 |
-| gitleaks | Bloqueio de segredos em commits | ⏳ F1 |
-| Type hints + docstrings | Contrato de código legível | ⏳ F1 (parcial ✅) |
-| Quarentena de registros | Registro ruim não entra no banco; cai com motivo | ✅ |
-| Reconciliação de contagens | Bronze vs legado vs relatórios (caso dos 80 arquivos) | ✅ |
-| Validação cruzada pasta × tag | Dialetos de taxonomia (MOOD/MOVEMENTNAME) | ✅ |
-| Dicionário de dados | Mp3tag ↔ camada prata documentado | ✅ |
-| dbt tests (unique, not_null, accepted_values) | Qualidade na camada gold | ⏳ F3 |
-| Menor privilégio / service accounts | app DML, bi só SELECT | ⏳ F3 |
-| Fernet (Airflow) | Criptografia de Connections | ⏳ F4 |
-| Mounts `:ro`, bind 127.0.0.1, chmod 750 | Endurecimento Docker/host | ⏳ F0/F2 |
-| Pseudonimização (SHA-256 de caminhos) | Privacidade no warehouse | ⏳ F3 |
+| pytest | 12 testes de hierarquia e derivados | ✅ |
+| ruff | linter/corretor | ✅ |
+| mypy | fiscal de tipos (src/ limpo) | ✅ |
+| gitleaks | farejador de segredos (local + CI) | ✅ |
+| pip-audit | falhas conhecidas nas dependências (CI) | ✅ |
+| type hints + docstrings | contrato legível | ✅ |
+| quarentena | ala hospitalar com motivo | ✅ |
+| reconciliação de contagens | bronze × prata × doc | ✅ |
+| validação pasta × tag | reconciliador, 99,6% concordância | ✅ |
+| dicionário de dados | Mp3tag ↔ prata | ✅ |
+| smoke test (--amostra) / resume (--completar) | piloto e checkpoint | ✅ |
+| dbt tests / service accounts | gold e menor privilégio | ⏳ F3 |
+| Fernet / audit_log / backup testado | ⏳ F4 |
+| branch protection | ⏸️ adiada (ADR-003) |
 
 ## 6. BI e observabilidade
 | Ferramenta | Uso | Status |
 |---|---|---|
-| Metabase | Dashboards, anomalias, Wrapped pessoal | ⏳ F3/F4 |
-| Tabela `metricas_execucao` | Sinais vitais de cada run | ⏳ F4 |
-| Bot Telegram (webhook) | Alerta de falha da DAG | ⏳ F4 |
-| `audit_log` | Trilha de auditoria das cargas | ⏳ F4 |
-| `historico_armazenamento.csv` | Snapshot de uso de storage p/ gráficos | ✅ |
-| pg_dump + restore testado (3-2-1, RPO/RTO) | Backup que existe de verdade | ⏳ F4 |
+| agregados ouro (6 CSVs) | resumos Excel/BI | ✅ |
+| ouro_evolucao_storage.csv | série temporal do storage | ✅ |
+| historico_armazenamento.csv | snapshots por run | ✅ |
+| Metabase / metricas_execucao / Telegram | ⏳ F3/F4 |
 
-## 7. Conceitos e práticas (o coração do currículo)
-ETL/ELT • CDC incremental (watermark por mtime) • Arquitetura medallion
-(bronze/prata/ouro) • Lakehouse/Parquet particionado • Star schema (Kimball)
-• Idempotência e upsert/merge • Particionamento por década • Data quality
-(quarentena, reconciliação, cobertura de tags) • Governança (dicionário de
-dados, classificação) • CI/CD • IaC • Observabilidade (métricas, alertas,
-audit trail) • Segurança (segredos, menor privilégio, criptografia) •
-Backup/recuperação (3-2-1, RPO/RTO) • ADRs • War stories documentadas
+## 7. Conceitos e práticas (coração do currículo)
+ETL • CDC por mtime • medallion (bronze/prata/ouro) • lakehouse/Parquet
+particionado • star schema • idempotência/upsert • data quality
+(quarentena, reconciliação, cobertura) • governança (dicionário, ADRs) •
+CI/CD • IaC • observabilidade • segurança (segredos, menor privilégio) •
+backup 3-2-1/RPO/RTO • war stories
 
-## 8. Fora de escopo — e por quê (maturidade também é skill)
-| Item | Motivo |
-|---|---|
-| Kubernetes, Spark, Databricks | Overengineering para o volume atual |
-| Kafka, Redis | Pertencem ao Projeto 3 |
-| Great Expectations / Soda | Testes do dbt resolvem |
-| DVC | Amostra reproduzível + ADR bastam |
-| MWAA / Composer | Custo desnecessário |
-| Power BI | Metabase cobre |
-| Multi-cloud | Foco e profundidade > coleção de siglas |
-| Subir 912 GB de áudio | Só metadados vão pra nuvem (regra de ouro) |
+## 8. Fora de escopo — e por quê
+Kubernetes/Spark/Databricks (overengineering) • Kafka/Redis (Projeto 3) •
+Great Expectations/Soda (dbt basta) • DVC • MWAA/Composer (caro) •
+Power BI (Metabase cobre) • multi-nuvem • subir 912 GB de áudio
 
-## 9. Tradução para currículo e LinkedIn
-
-Headline sugerida:
-"Engenharia de Dados | Pipeline batch + CDC sobre 110k arquivos |
+## 9. Tradução para currículo
+Headline: "Engenharia de Dados | Pipeline batch + CDC sobre 110k arquivos |
 Python • Airflow • dbt • AWS"
-
-Bullets estilo experiência (só usar o que já estiver concluído):
-- Pipeline ETL de 110k+ arquivos de áudio (912 GB) com processamento
-  incremental (CDC por mtime): runtime de ~3h reduzido para segundos.
-- Extração de metadados em escala (ID3v2.3/v2.4, MP4/iTunes, Vorbis, ASF)
-  com quarentena, reconciliação de contagens e relatórios de qualidade.
-- Camadas bronze/prata/ouro (medallion) com inventário colunar em Parquet
-  sobre object storage (MinIO/S3).
-- Star schema (Kimball) modelado em dbt com testes de dados
-  (unique, not_null, accepted_values).
-- Orquestração Airflow (TaskFlow) com retries, métricas de execução e
-  alerta de falha via Telegram.
-- CI/CD com GitHub Actions (pytest, ruff, mypy, gitleaks) e gestão de
-  segredos (.env, Parameter Store); repo público sem vazamentos.
-- Infra em nuvem via Terraform com guardrail de custo (AWS Budgets).
-
-War stories por ferramenta (para entrevista):
-- CDC/mtime: gargalo de I/O de 2-3h → segundos.
-- Pandas: falso positivo do "null" (Astrophysics) → keep_default_na=False.
-- ID3: ano nulo no BI → diagnóstico TYER vs TDRC → substituição por M4A.
-- Docker: container sem acesso ao banco → networking + permissões.
-- Idempotência: replace ingênuo → evolução para merge/upsert.
-- Segurança: os 5 riscos encontrados e corrigidos no v1.
+Bullets novos da FASE 1:
+- CI completo (pytest + ruff + mypy + pip-audit + gitleaks) em GitHub
+  Actions, com Dependabot ativo e PRs revisados.
+- Portão de qualidade local (pre-commit) + remoto (CI) em repo público
+  sem segredos.
