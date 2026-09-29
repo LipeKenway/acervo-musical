@@ -52,3 +52,27 @@ Collections, Collection, Mixtapes, Mixtape, Lives, Live, Remixes, Remix
 
 Diferença de dialeto NÃO é conflito. O relatorio_conflitos.csv
 registra apenas anomalias pós-tradução — fila de revisão humana.
+
+### ADR-001 — Fonte de verdade para tipo de lançamento
+- Contexto: 577 faixas (0,52%) com pasta e tag discordando
+  (ex.: compilação arquivada em Albums, tag=Compilation).
+- Decisão:
+  - Prata: tipo_final continua vindo da PASTA (organização física,
+    estável, usada para particionamento).
+  - Ouro (Fase 3, dbt): tipo oficial = TAG (identidade semântica,
+    curada no Mp3tag, cobertura 100%).
+  - relatorio_conflitos.csv = fila de higiene física, não erro de pipeline.
+- Consequência: nenhuma re-execução cara agora; a fila encolhe
+  conforme as correções de pasta/tag ao longo do tempo.
+
+  ### Dialeto livre (confirmado pelo dono do acervo)
+- Soundtrack e Mixes & Lives: a tag é a identidade do tipo de
+  lançamento; a pasta NÃO é checada pelo reconciliador.
+- Regra viva em src/ingest/reconciliador.py (GENEROS_LIVRES).
+
+### Política de movimentação de pastas (ADR-002)
+- Não fazer mutirão: o dado já está certo via tag (ouro usa tag).
+- Mover pasta sem extração completa gera linhas fantasmas
+  (caminho velho + caminho novo da mesma faixa).
+- Higiene orgânica: corrigir pastas quando já estiver no Mp3tag.
+- Mutirão só com: mover tudo -> scanner -> extração completa.
