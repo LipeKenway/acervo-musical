@@ -1,3 +1,4 @@
+![CI](https://github.com/LipeKenway/acervo-musical/actions/workflows/ci.yml/badge.svg)
 # Acervo Musical — Engenharia de Dados
 
 Pipeline de dados sobre uma biblioteca musical pessoal:

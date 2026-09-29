@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Ruff (corretor)
+        run: ruff check .
+
+      - name: Testes (pytest)
+        run: python -m pytest tests -v
+
+  seguranca:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: pip-audit (buracos conhecidos nas dependencias)
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit -r requirements.txt -r requirements-dev.txt
+
+      - name: Gitleaks (segredos no codigo)
+        run: docker run -v ${{ github.workspace }}:/repo zricethezav/gitleaks:latest detect --source /repo
