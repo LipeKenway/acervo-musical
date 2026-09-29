@@ -33,3 +33,22 @@ Collections, Collection, Mixtapes, Mixtape, Lives, Live, Remixes, Remix
 - data/processed/inventario_acervo.csv (inventário bronze)
 - Relatório de tipos desconhecidos (calibra o vocabulário)
 - Relatório de extensões ignoradas (reconciliação de contagens)
+
+## Dois dialetos, uma taxonomia (pastas x tags)
+
+### Gêneros com tipo na pasta
+- Pastas (plural, exceto EP): Albums, EP, Singles, Mixtapes,
+  Compilations, Collections
+- Tags (MOVEMENTNAME): Album, EP, Single, Mixtape, Compilation, Collection
+- Tradução: Albums->Album | EP->EP | Singles->Single |
+  Mixtapes->Mixtape | Compilations->Compilation | Collections->Collection
+
+### Mixes & Lives (tipo NÃO existe na pasta)
+- L1 gênero: Mixes & Lives
+- L2 subgênero (pasta e MOOD): DJ Mix, Live Set, Studio Mix
+- Tipo de lançamento somente na tag MOVEMENTNAME:
+  DJ Mix->DJ Set | Live Set->Live Album | Studio Mix->Continuous Mix
+- Prata registra tipo_origem="tag" nessas linhas.
+
+Diferença de dialeto NÃO é conflito. O relatorio_conflitos.csv
+registra apenas anomalias pós-tradução — fila de revisão humana.
