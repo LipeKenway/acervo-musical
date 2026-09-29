@@ -1,19 +1,17 @@
-"""
-Extrator de metadados (camada prata) v1.2.
+r"""Extrator de metadados (camada prata) — versão final.
 
 Lê o inventário bronze, abre cada áudio com mutagen e grava:
-- data/processed/acervo_prata.csv        (contrato prata, legível p/ Excel)
-- data/processed/quarentena.csv          (falhas com motivo)
-- data/exports/relatorio_conflitos.csv   (anomalias pós-tradução)
+- data/processed/acervo_prata.csv          (contrato prata, legível p/ Excel)
+- data/processed/quarentena.csv            (falhas com motivo)
 - data/exports/historico_armazenamento.csv (snapshot p/ gráficos)
 
-Taxonomia (docs/hierarquia.md):
-- Demais gêneros: genero / subgenero / tipo_na_pasta / artista / release
-- Mixes & Lives: genero / subgenero (DJ Mix, Live Set, Studio Mix) /
-  artista / release — o tipo de lançamento vive SÓ na tag MOVEMENTNAME.
+Modos de execução:
+  (sem flag)    extração completa: reescreve prata, quarentena e snapshot
+  --amostra N   piloto: processa N linhas e SÓ IMPRIME (não escreve nada)
+  --completar   resume: processa só o que falta na prata e ANEXA
 
-Modo SOMENTE LEITURA na biblioteca.
-
+O relatório de anomalias pasta x tag mora no reconciliador.py
+(um dono por artefato). Modo SOMENTE LEITURA na biblioteca.
 """
 
 import csv
@@ -31,7 +29,6 @@ from dotenv import load_dotenv
 BRONZE = Path("data/processed/inventario_acervo.csv")
 PRATA = Path("data/processed/acervo_prata.csv")
 QUARENTENA = Path("data/processed/quarentena.csv")
-CONFLITOS = Path("data/exports/relatorio_conflitos.csv")
 HISTORICO = Path("data/exports/historico_armazenamento.csv")
 
 SEM_TIPO = "(sem tipo na pasta)"
@@ -54,17 +51,6 @@ TIPO_CANONICO = {
 }
 
 REGEX_DISCO = re.compile(r"^(cd|disc|disco)\s*\d+$", re.IGNORECASE)
-
-# Dialeto pasta -> dialeto tag (gêneros com tipo na pasta)
-MAPA_PASTA_TAG = {
-    "Albums": "Album",
-    "EP": "EP",
-    "Singles": "Single",
-    "Compilations": "Compilation",
-    "Collections": "Collection",
-    "Mixtapes": "Mixtape",
-    "Lives": "Live Album",
-}
 
 # Mixes & Lives: subgênero (pasta/MOOD) -> tipo esperado na tag
 MAPA_SUBGENERO_TAG = {
@@ -205,6 +191,7 @@ def duracao_legivel(seg) -> str:
 
 
 def formato_tag(arq):
+    """Ex.: 'ID3 v2.4', 'ID3 v2.3', 'MP4', 'Vorbis', 'ASF'."""
     tags = arq.tags
     if tags is None:
         return None
@@ -252,22 +239,33 @@ def main() -> None:
     if not raiz.is_dir():
         raise SystemExit("Erro: MUSIC_LIBRARY_PATH inválido no .env")
 
+    eh_amostra = "--amostra" in sys.argv
+    eh_completar = "--completar" in sys.argv
+
     with BRONZE.open(encoding="utf-8") as fh:
         bronze = list(csv.DictReader(fh))
 
-    eh_amostra = "--amostra" in sys.argv
     if eh_amostra:
         n = int(sys.argv[sys.argv.index("--amostra") + 1])
         bronze = bronze[:n]
-        print(f"=== MODO AMOSTRA: somente {n} linhas ===\n")
+        print(f"=== MODO AMOSTRA: {n} linhas | SÓ IMPRIME, NÃO ESCREVE ===\n")
+
+    if eh_completar and PRATA.exists():
+        with PRATA.open(encoding="utf-8-sig") as fh:
+            ja_processados = {r["caminho_relativo"] for r in csv.DictReader(fh)}
+        total_bruto = len(bronze)
+        bronze = [r for r in bronze if r["caminho_relativo"] not in ja_processados]
+        print(
+            f"=== MODO COMPLETAR: {total_bruto - len(bronze):,} ok, "
+            f"{len(bronze):,} pendentes ===\n"
+        )
 
     total = len(bronze)
     print(f"Extraindo metadados de {total:,} arquivos (somente leitura)...\n")
 
     linhas_prata = []
     quarentena = []
-    conflitos = Counter()
-    cobertura = {}
+    cobertura = Counter()
     historico = Counter()
     origens = Counter()
     sem_tipo_generos = Counter()
@@ -292,13 +290,9 @@ def main() -> None:
             if info_pasta["tipo_pasta"] != SEM_TIPO:
                 tipo_final = info_pasta["tipo_pasta"]
                 tipo_origem = "pasta"
-                esperado = MAPA_PASTA_TAG.get(tipo_final)
             else:
                 tipo_final = tipo_tag
                 tipo_origem = "tag"
-                esperado = MAPA_SUBGENERO_TAG.get(
-                    (info_pasta["subgenero_pasta"] or "").lower()
-                )
                 sem_tipo_generos[info_pasta["genero"]] += 1
 
             origens[tipo_origem] += 1
@@ -307,9 +301,6 @@ def main() -> None:
             cov[0] += 1
             cov[1] += 1 if sub_tag else 0
             cov[2] += 1 if tipo_tag else 0
-
-            if esperado and tipo_tag and tipo_tag.lower() != esperado.lower():
-                conflitos[(info_pasta["genero"], info_pasta["subgenero_pasta"] or info_pasta["tipo_pasta"], tipo_tag)] += 1
 
             historico[(info_pasta["genero"], tec["container"])] += 1
 
@@ -349,25 +340,20 @@ def main() -> None:
         if i % 5000 == 0:
             print(f"  {i:>7,}/{total:,}  ({time.time() - inicio:.0f}s)")
 
-    PRATA.parent.mkdir(parents=True, exist_ok=True)
-    with PRATA.open("w", newline="", encoding="utf-8-sig") as fh:
-        w = csv.DictWriter(fh, fieldnames=CAMPOS_PRATA)
-        w.writeheader()
-        w.writerows(linhas_prata)
-
-    with QUARENTENA.open("w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, fieldnames=["caminho_relativo", "motivo"])
-        w.writeheader()
-        w.writerows(quarentena)
-
-    CONFLITOS.parent.mkdir(parents=True, exist_ok=True)
-    with CONFLITOS.open("w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh)
-        w.writerow(["genero", "subgenero_ou_tipo_pasta", "tipo_tag", "qtd"])
-        for (g, sp, tt), qtd in conflitos.most_common():
-            w.writerow([g, sp, tt, qtd])
-
     if not eh_amostra:
+        modo = "a" if eh_completar else "w"
+        with PRATA.open(modo, newline="", encoding="utf-8-sig") as fh:
+            w = csv.DictWriter(fh, fieldnames=CAMPOS_PRATA)
+            if modo == "w":
+                w.writeheader()
+            w.writerows(linhas_prata)
+
+        with QUARENTENA.open("w", newline="", encoding="utf-8") as fh:
+            w = csv.DictWriter(fh, fieldnames=["caminho_relativo", "motivo"])
+            w.writeheader()
+            w.writerows(quarentena)
+
+    if not eh_amostra and not eh_completar:
         run_ts = datetime.now().isoformat(timespec="seconds")
         nova = not HISTORICO.exists()
         with HISTORICO.open("a", newline="", encoding="utf-8") as fh:
@@ -377,8 +363,9 @@ def main() -> None:
             for (g, c), qtd in sorted(historico.items()):
                 w.writerow([run_ts, g, c, qtd])
 
-    print(f"\n✅ Prata: {len(linhas_prata):,} linhas em {PRATA}")
-    print(f"⚠ Quarentena: {len(quarentena):,} arquivos em {QUARENTENA}")
+    verbo = "processadas (sem escrever)" if eh_amostra else "linhas"
+    print(f"\n✅ Prata: {len(linhas_prata):,} {verbo}")
+    print(f"⚠ Quarentena: {len(quarentena):,} arquivos")
 
     print(f"\nOrigem do tipo final: pasta={origens['pasta']:,} | tag={origens['tag']:,}")
     if sem_tipo_generos:
@@ -392,11 +379,6 @@ def main() -> None:
             f"  {container:<6} {t:>7,} arquivos | "
             f"MOOD {com_mood / t:>6.1%} | MOVEMENT {com_mov / t:>6.1%}"
         )
-
-    if conflitos:
-        print("\nAnomalias pós-tradução (fila de revisão, top 10):")
-        for (g, sp, tt), qtd in conflitos.most_common(10):
-            print(f"  {qtd:>6,}  {g} | {sp} | tag={tt}")
 
     print(f"\nTempo total: {time.time() - inicio:.0f}s")
 
