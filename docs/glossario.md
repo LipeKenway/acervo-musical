@@ -117,3 +117,16 @@ Regra da casa: palavra nova aprendida = entrada nova aqui.
 - **Budgets** — o alerta de cobrança (o guarda-chuva da nuvem).
 - **IaC / Terraform** — infraestrutura por código, não por cliques.
 - **War story** — um problema real resolvido, contado como história de entrevista.
+
+## CI e colaboração
+- **Personal Access Token (PAT)** — crachá de visitante do GitHub:
+  substitui a senha no push, com escopo e prazo, cancelável sem trocar
+  a fechadura.
+- **Runner** — a máquina alugada que executa o workflow (ubuntu-latest).
+- **Pull request (PR)** — "fiz numa branch separada, pode entrar na
+  main?". Até o Dependabot abre PRs; você revisa e mergeia.
+- **pip-audit** — cruza suas bibliotecas com o catálogo público de
+  falhas conhecidas (CVEs).
+- **Branch protection** — regra que só deixa a main receber código
+  aprovado e verde. Adiada por decisão (ADR-003).
+- **Badge** — o selinho no README mostrando o status do CI ao mundo.

@@ -46,3 +46,9 @@ FASE 4 Airflow/observabilidade → FASE 5 AWS/Terraform
 ## Segurança
 Segredos apenas em `.env` (fora do Git); biblioteca montada como
 somente leitura; nenhum arquivo de áudio sobe para o repositório.
+
+## Qualidade
+- Porteiro local: pre-commit (ruff + gitleaks) em todo commit
+- Robô na nuvem: GitHub Actions (pytest + ruff + pip-audit + gitleaks)
+- Vigia: Dependabot semanal (pip + actions)
+- 12 testes unitários de hierarquia e derivados

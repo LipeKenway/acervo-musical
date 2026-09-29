@@ -265,10 +265,10 @@ def main() -> None:
 
     linhas_prata = []
     quarentena = []
-    cobertura = Counter()
-    historico = Counter()
-    origens = Counter()
-    sem_tipo_generos = Counter()
+    cobertura: dict[str, list[int]] = {}
+    historico: Counter[tuple[str, str]] = Counter()
+    origens: Counter[str] = Counter()
+    sem_tipo_generos: Counter[str] = Counter()
     inicio = time.time()
 
     for i, row in enumerate(bronze, 1):
@@ -343,25 +343,25 @@ def main() -> None:
     if not eh_amostra:
         modo = "a" if eh_completar else "w"
         with PRATA.open(modo, newline="", encoding="utf-8-sig") as fh:
-            w = csv.DictWriter(fh, fieldnames=CAMPOS_PRATA)
+            w_prata = csv.DictWriter(fh, fieldnames=CAMPOS_PRATA)
             if modo == "w":
-                w.writeheader()
-            w.writerows(linhas_prata)
+                w_prata.writeheader()
+            w_prata.writerows(linhas_prata)
 
         with QUARENTENA.open("w", newline="", encoding="utf-8") as fh:
-            w = csv.DictWriter(fh, fieldnames=["caminho_relativo", "motivo"])
-            w.writeheader()
-            w.writerows(quarentena)
+            w_quarentena = csv.DictWriter(fh, fieldnames=["caminho_relativo", "motivo"])
+            w_quarentena.writeheader()
+            w_quarentena.writerows(quarentena)
 
     if not eh_amostra and not eh_completar:
         run_ts = datetime.now().isoformat(timespec="seconds")
         nova = not HISTORICO.exists()
         with HISTORICO.open("a", newline="", encoding="utf-8") as fh:
-            w = csv.writer(fh)
+            w_historico = csv.writer(fh)
             if nova:
-                w.writerow(["run_ts", "genero", "container", "qtd_arquivos"])
+                w_historico.writerow(["run_ts", "genero", "container", "qtd_arquivos"])
             for (g, c), qtd in sorted(historico.items()):
-                w.writerow([run_ts, g, c, qtd])
+                w_historico.writerow([run_ts, g, c, qtd])
 
     verbo = "processadas (sem escrever)" if eh_amostra else "linhas"
     print(f"\n✅ Prata: {len(linhas_prata):,} {verbo}")

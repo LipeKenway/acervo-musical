@@ -14,6 +14,7 @@ Uso: python src/ingest/reconciliador.py
 import csv
 from collections import defaultdict
 from pathlib import Path
+from typing import Any
 
 PRATA = Path("data/processed/acervo_prata.csv")
 CONFLITOS = Path("data/exports/relatorio_conflitos.csv")
@@ -40,7 +41,7 @@ def main() -> None:
     total = len(linhas)
     ok = 0
     livres = 0
-    fila = defaultdict(lambda: [0, ""])
+    fila: defaultdict[tuple[str, str, str], list[Any]] = defaultdict(lambda: [0, ""])
 
     for linha in linhas:
         genero = linha["genero"]

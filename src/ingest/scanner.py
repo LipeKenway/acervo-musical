@@ -78,13 +78,13 @@ def classificar_caminho(partes: list[str]) -> dict:
 def escanear(pasta_raiz: Path):
     """Varre a biblioteca: inventário de áudios + relatório de imagens."""
     linhas = []
-    ext_ignoradas = Counter()
-    tipos_desconhecidos = Counter()
+    ext_ignoradas: Counter[str] = Counter()
+    tipos_desconhecidos: Counter[str] = Counter()
 
-    img_qtd_genero = Counter()
-    img_bytes_genero = Counter()
-    img_qtd_pasta = Counter()
-    img_bytes_pasta = Counter()
+    img_qtd_genero: Counter[str] = Counter()
+    img_bytes_genero: Counter[str] = Counter()
+    img_qtd_pasta: Counter[str] = Counter()
+    img_bytes_pasta: Counter[str] = Counter()
 
     for raiz, _subpastas, arquivos in os.walk(pasta_raiz):
         for nome in arquivos:
@@ -135,11 +135,12 @@ def escanear(pasta_raiz: Path):
             "pasta": pasta,
             "genero": pasta.split("/")[0],
             "qtd_imagens": img_qtd_pasta[pasta],
-            "tamanho_bytes": img_bytes_pasta[pasta],
+            "tamanho_bytes": tamanho,
         }
-        for pasta in img_bytes_pasta
+         for pasta, tamanho in sorted(
+            img_bytes_pasta.items(), key=lambda kv: kv[1], reverse=True
+        )
     ]
-    relatorio_imagens.sort(key=lambda linha: linha["tamanho_bytes"], reverse=True)
 
     return (
         linhas,
