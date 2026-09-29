@@ -177,8 +177,8 @@ def main() -> None:
         writer.writeheader()
         writer.writerows(imagens["por_pasta"])
 
-    por_tipo = Counter(l["tipo_lancamento"] for l in linhas)
-    total_gb = sum(l["tamanho_bytes"] for l in linhas) / 1024 ** 3
+    por_tipo = Counter(linha["tipo_lancamento"] for linha in linhas)
+    total_gb = sum(linha["tamanho_bytes"] for linha in linhas) / 1024 ** 3
 
     print(f"Arquivos de áudio: {len(linhas):,} | {total_gb:.2f} GB")
     print(f"Inventário gravado em: {CSV_INVENTARIO}\n")
