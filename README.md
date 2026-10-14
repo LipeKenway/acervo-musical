@@ -2,7 +2,7 @@
 # Acervo Musical — Engenharia de Dados
 
 Pipeline de dados sobre uma biblioteca musical pessoal:
-**111k+ faixas | ~920 GB | ~314 dias de áudio** (números exatos e datados na seção Números)**.
+**111k+ faixas | ~920 GB | ~314 dias de áudio** (números exatos e datados na seção Números).
 
 ## O que é
 Projeto de engenharia de dados que trata uma coleção pessoal de
