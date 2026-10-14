@@ -1,13 +1,15 @@
-r"""Agregados ouro — resumos prontos para Excel/BI.
+r"""Agregados ouro — resumos Excel/BI + docs auto-atualizadas.
 
 Relê a camada prata e produz, em data/exports/:
-- ouro_genero.csv            (qtd, GB e duração por gênero)
-- ouro_container.csv         (MP3 vs M4A vs FLAC: qtd, GB, % do peso)
-- ouro_genero_container.csv  (cruzado: onde mora o peso)
-- ouro_bitrate.csv           (128/192/256/320 kbps vs lossless)
-- ouro_decada.csv            (qtd, GB e duração por década)
-- ouro_evolucao_storage.csv  (snapshot append-only p/ gráfico do HD)
+- ouro_genero.csv / ouro_container.csv / ouro_genero_container.csv
+- ouro_bitrate.csv / ouro_decada.csv / ouro_evolucao_storage.csv
 
+E reescreve blocos marcados (entre comentários HTML) em 3 docs:
+- README.md                   -> NUMEROS-AUTO (números do acervo)
+- docs/stack.md               -> NUMEROS-AUTO (linha de números)
+- docs/dicionario_de_dados.md -> COLUNAS-AUTO (contrato prata)
+
+Regra: o gerador só toca ENTRE marcadores; a prosa fora é sagrada.
 Um dono por artefato: o ouro NUNCA escreve na prata/bronze.
 Uso: python src\transform\agregados_ouro.py
 """
@@ -20,8 +22,17 @@ from pathlib import Path
 PRATA = Path("data/processed/acervo_prata.csv")
 EXPORTS = Path("data/exports")
 EVOLUCAO = EXPORTS / "ouro_evolucao_storage.csv"
+CONFLITOS = EXPORTS / "relatorio_conflitos.csv"
+README = Path("README.md")
+STACK = Path("docs/stack.md")
+DICIONARIO = Path("docs/dicionario_de_dados.md")
 
-GB = 1024 ** 3
+MARCA_INI = "<!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->"
+MARCA_FIM = "<!-- /NUMEROS-AUTO -->"
+MARCA_DIC_INI = "<!-- COLUNAS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->"
+MARCA_DIC_FIM = "<!-- /COLUNAS-AUTO -->"
+
+GB = 1024**3
 
 
 def grupo_bitrate(linha: dict) -> str:
@@ -54,8 +65,8 @@ def duracao_legivel(seg: float) -> str:
 class Acumulador:
     """Soma qtd, bytes e segundos para cada chave que aparecer."""
 
-    def __init__(self):
-        self.dados = defaultdict(lambda: [0, 0.0, 0.0])
+    def __init__(self) -> None:
+        self.dados: defaultdict = defaultdict(lambda: [0, 0.0, 0.0])
 
     def soma(self, chave, linha: dict) -> None:
         acc = self.dados[chave]
@@ -67,9 +78,7 @@ class Acumulador:
         if isinstance(nomes_chave, str):
             nomes_chave = [nomes_chave]
         saida = []
-        for chave, (qtd, bytes_, seg) in sorted(
-            self.dados.items(), key=lambda kv: -kv[1][1]
-        ):
+        for chave, (qtd, bytes_, seg) in sorted(self.dados.items(), key=lambda kv: -kv[1][1]):
             if not isinstance(chave, tuple):
                 chave = (chave,)
             saida.append(
@@ -94,9 +103,78 @@ def escrever(nome: str, nomes_chave, linhas) -> None:
     print(f"  ✅ {nome} ({len(linhas)} linhas)")
 
 
+def _reescrever_bloco(caminho: Path, ini: str, fim: str, bloco: list) -> bool:
+    """Troca só o trecho entre marcadores; o resto do arquivo fica intocado."""
+    texto = caminho.read_text(encoding="utf-8")
+    i = texto.find(ini)
+    f = texto.find(fim)
+    if i == -1 or f == -1:
+        return False
+    novo = texto[:i] + "\n".join(bloco) + "\n" + texto[f + len(fim) :]
+    caminho.write_text(novo, encoding="utf-8")
+    return True
+
+
+def atualizar_docs(
+    total: int,
+    total_bytes: float,
+    total_seg: float,
+    por_container: "Acumulador",
+    cobertura: dict,
+    fila_qtd: int,
+    colunas: list,
+) -> None:
+    """Reescreve os blocos gerados do README, do stack e do dicionário."""
+    gb_total = total_bytes / GB
+    quando = f"{datetime.now():%d/%m/%Y %H:%M}"
+
+    readme = [
+        MARCA_INI,
+        f"**{total:,} faixas | {gb_total:.2f} GB | {duracao_legivel(total_seg)} de áudio** *(snapshot de {quando})*",
+        "",
+    ]
+    for linha in por_container.linhas("container"):
+        pct = linha["tamanho_gb"] / gb_total * 100
+        readme.append(
+            f"- {linha['container']}: {linha['qtd_faixas']:,} faixas | "
+            f"{linha['tamanho_gb']:.2f} GB | {pct:.1f}% do peso"
+        )
+    for container, (t, com_mood, com_mov) in sorted(cobertura.items()):
+        readme.append(f"- Cobertura MOOD/MOVEMENT em {container}: {com_mood / t:.1%} / {com_mov / t:.1%}")
+    concordancia = (total - fila_qtd) / total * 100 if total else 0.0
+    readme.append(f"- Reconciliação pasta × tag: {concordancia:.1f}% (fila de revisão: {fila_qtd} casos, ADR-002)")
+    readme.append(MARCA_FIM)
+
+    stack = [
+        MARCA_INI,
+        f"Números: {total:,} faixas | {gb_total:.2f} GB | "
+        f"{duracao_legivel(total_seg)} de áudio (snapshot de {quando}; "
+        "detalhes no README)",
+        MARCA_FIM,
+    ]
+
+    dicionario = [
+        MARCA_DIC_INI,
+        f"**Contrato prata atual: {len(colunas)} colunas** *(gerado do cabeçalho do acervo_prata.csv em {quando})*",
+        "",
+        " · ".join(f"`{c}`" for c in colunas),
+        MARCA_DIC_FIM,
+    ]
+
+    for caminho, mi, mf, bloco in [
+        (README, MARCA_INI, MARCA_FIM, readme),
+        (STACK, MARCA_INI, MARCA_FIM, stack),
+        (DICIONARIO, MARCA_DIC_INI, MARCA_DIC_FIM, dicionario),
+    ]:
+        ok = _reescrever_bloco(caminho, mi, mf, bloco)
+        print(f"  {'✅' if ok else '⚠'} {caminho}: {'bloco atualizado' if ok else 'sem marcadores, pulado'}")
+
+
 def main() -> None:
     with PRATA.open(encoding="utf-8-sig") as fh:
-        prata = list(csv.DictReader(fh))
+        leitor = csv.DictReader(fh)
+        colunas = list(leitor.fieldnames or [])
+        prata = list(leitor)
 
     print(f"Prata lida: {len(prata):,} linhas\nGerando agregados ouro...")
 
@@ -105,6 +183,7 @@ def main() -> None:
     por_genero_container = Acumulador()
     por_bitrate = Acumulador()
     por_decada = Acumulador()
+    cobertura: dict = {}
 
     total_bytes = 0.0
     total_seg = 0.0
@@ -117,6 +196,10 @@ def main() -> None:
         por_genero_container.soma((linha["genero"], linha["container"]), linha)
         por_bitrate.soma(grupo_bitrate(linha), linha)
         por_decada.soma(str(linha["decada"] or "(sem ano)"), linha)
+        cov = cobertura.setdefault(linha["container"], [0, 0, 0])
+        cov[0] += 1
+        cov[1] += 1 if (linha["subgenero_tag"] or "").strip() else 0
+        cov[2] += 1 if (linha["tipo_album_tag"] or "").strip() else 0
 
     EXPORTS.mkdir(parents=True, exist_ok=True)
     escrever("ouro_genero.csv", "genero", por_genero.linhas("genero"))
@@ -129,7 +212,6 @@ def main() -> None:
     escrever("ouro_bitrate.csv", "faixa_bitrate", por_bitrate.linhas("faixa_bitrate"))
     escrever("ouro_decada.csv", "decada", por_decada.linhas("decada"))
 
-    # Snapshot append-only: a série temporal do seu gráfico de storage
     run_ts = datetime.now().isoformat(timespec="seconds")
     nova = not EVOLUCAO.exists()
     with EVOLUCAO.open("a", newline="", encoding="utf-8") as fh:
@@ -140,17 +222,17 @@ def main() -> None:
             w.writerow([run_ts, g, c, qtd, round(bytes_ / GB, 2)])
     print("  ✅ ouro_evolucao_storage.csv (snapshot anexado)")
 
+    fila_qtd = 0
+    if CONFLITOS.exists():
+        with CONFLITOS.open(encoding="utf-8-sig") as fh:
+            fila_qtd = sum(int(r["qtd"]) for r in csv.DictReader(fh))
+
+    atualizar_docs(len(prata), total_bytes, total_seg, por_container, cobertura, fila_qtd, colunas)
+
     print("\n=== RESUMO GERAL ===")
     print(f"Faixas: {len(prata):,}")
     print(f"Tamanho: {total_bytes / GB:.2f} GB")
     print(f"Duração total: {duracao_legivel(total_seg)}")
-    print("\nPeso por container:")
-    for linha in por_container.linhas("container"):
-        pct = linha["tamanho_gb"] / (total_bytes / GB) * 100
-        print(
-            f"  {linha['container']:<6} {linha['qtd_faixas']:>7,} faixas | "
-            f"{linha['tamanho_gb']:>7.2f} GB | {pct:>5.1f}% do peso"
-        )
 
 
 if __name__ == "__main__":

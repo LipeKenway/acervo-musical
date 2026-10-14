@@ -19,3 +19,14 @@
   da biblioteca `minio`.
 - Consequência: o código de upload da FASE 2 é o MESMO da Fase 5
   (só muda o endpoint) — treino idêntico ao production, sem retrabalho.
+
+  ## ADR-005 — Setup pós-format: o PC é descartável
+- Contexto: format apagou venv, .env, extensões e os dados
+  gitignored (bronze/prata/ouro em CSV).
+- Decisão: tratar o PC como descartável: código e docs vivem no
+  GitHub; setup vive no Settings Sync; segredos no .env (com
+  .env.example como molde); dados regeneráveis vivem no pipeline.
+- Consequência: recuperação completa em ~30 min + tempo de
+  extractor; nenhuma perda única.
+- Nota: séries temporais (historico/evolucao) reiniciam após
+  format — custo aceito para dados gitignored.

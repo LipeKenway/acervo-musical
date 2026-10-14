@@ -3,7 +3,10 @@
 Inventário vivo de linguagens, ferramentas e práticas.
 Status: ✅ em uso | ⏳ roadmap (fase) | 🧊 legado | 🚫 fora de escopo | ⏸️ adiada por ADR
 
-Números: 110.731 faixas | 912,89 GB | 311,3 dias de áudio
+<!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
+Números: 111,614 faixas | 919.85 GB | 314.1 dias de áudio (snapshot de 14/10/2026 19:00; detalhes no README)
+<!-- /NUMEROS-AUTO -->
+
 Repo público: github.com/LipeKenway/acervo-musical
 
 ## 1. Linguagens
@@ -62,8 +65,8 @@ Repo público: github.com/LipeKenway/acervo-musical
 | dicionário de dados | Mp3tag ↔ prata | ✅ |
 | smoke test (--amostra) / resume (--completar) | piloto e checkpoint | ✅ |
 | dbt tests / service accounts | gold e menor privilégio | ⏳ F3 |
-| Fernet / audit_log / backup testado | ⏳ F4 |
-| branch protection | ⏸️ adiada (ADR-003) |
+| Fernet / audit_log / backup testado | criptografia, trilha de auditoria e restore | ⏳ F4 |
+| branch protection | merge na main só com CI verde | ⏸️ adiada (ADR-003) |
 
 ## 6. BI e observabilidade
 | Ferramenta | Uso | Status |
@@ -71,7 +74,7 @@ Repo público: github.com/LipeKenway/acervo-musical
 | agregados ouro (6 CSVs) | resumos Excel/BI | ✅ |
 | ouro_evolucao_storage.csv | série temporal do storage | ✅ |
 | historico_armazenamento.csv | snapshots por run | ✅ |
-| Metabase / metricas_execucao / Telegram | ⏳ F3/F4 |
+| Metabase / metricas_execucao / Telegram | painéis, métricas de run e alertas | ⏳ F3/F4 |
 
 ## 7. Conceitos e práticas (coração do currículo)
 ETL • CDC por mtime • medallion (bronze/prata/ouro) • lakehouse/Parquet

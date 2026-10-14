@@ -24,6 +24,9 @@ jobs:
       - name: Ruff (corretor)
         run: ruff check .
 
+      - name: Mypy (fiscal de tipos)
+        run: mypy src
+
       - name: Testes (pytest)
         run: python -m pytest tests -v
 

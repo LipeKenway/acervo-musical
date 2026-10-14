@@ -143,3 +143,16 @@ Regra da casa: palavra nova aprendida = entrada nova aqui.
   `endpoint_url` para falar com o MinIO em vez da AWS.
 - **boto3** — biblioteca oficial da AWS para Python; treinada no MinIO,
   usada de verdade na Fase 5.
+
+  ## Git e recuperação
+- **Clone** — baixar o repositório com todo o histórico numa máquina
+  nova. Analogia: receber a cópia completa do caderno, não só a
+  última página.
+- **Rebase (git pull --rebase)** — reaplicar seus commits em cima dos
+  que chegaram do remoto, mantendo a história em linha reta.
+- **Credential Manager** — o cofre do Windows que guarda seu token
+  para você não digitar senha em todo push.
+- **Settings Sync** — o VS Code sincroniza extensões e configurações
+  pelo GitHub; formatar o PC não custa mais o setup.
+- **PAT com validade** — crachá com data de expiração: token vencido
+  não abre a porta; gerar outro é rotina saudável (30 dias).

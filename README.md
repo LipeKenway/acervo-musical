@@ -2,7 +2,7 @@
 # Acervo Musical — Engenharia de Dados
 
 Pipeline de dados sobre uma biblioteca musical pessoal:
-**110.731 faixas | 912,89 GB | 311,3 dias de áudio**.
+**111k+ faixas | ~920 GB | ~314 dias de áudio** (números exatos e datados na seção Números)**.
 
 ## O que é
 Projeto de engenharia de dados que trata uma coleção pessoal de
@@ -22,10 +22,19 @@ de dados, documentação viva e decisões registradas como ADRs.
 - `src/transform/agregados_ouro.py` — resumos e snapshot de storage
 
 ## Números
-- 110.731 faixas | 912,89 GB | 311,3 dias de áudio
-- MP3 69,6% do peso (quase todo 257–320 kbps) | M4A 29,8% | FLAC 0,6%
-- Cobertura de tags MOOD/MOVEMENT: 100% nos três containers
-- Reconciliação pasta × tag: 99,6% (fila de revisão documentada, ADR-002)
+<!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
+**111,614 faixas | 919.85 GB | 314.1 dias de áudio** *(snapshot de 14/10/2026 19:00)*
+
+- MP3: 67,630 faixas | 636.34 GB | 69.2% do peso
+- M4A: 43,684 faixas | 278.25 GB | 30.2% do peso
+- FLAC: 300 faixas | 5.27 GB | 0.6% do peso
+- Cobertura MOOD/MOVEMENT em FLAC: 100.0% / 100.0%
+- Cobertura MOOD/MOVEMENT em M4A: 100.0% / 100.0%
+- Cobertura MOOD/MOVEMENT em MP3: 100.0% / 100.0%
+- Reconciliação pasta × tag: 99.6% (fila de revisão: 410 casos, ADR-002)
+<!-- /NUMEROS-AUTO -->
+
+
 
 ## Qualidade
 - Porteiro local: pre-commit (ruff + gitleaks) em todo commit
