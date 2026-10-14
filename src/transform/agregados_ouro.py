@@ -139,8 +139,8 @@ def atualizar_docs(
             f"- {linha['container']}: {linha['qtd_faixas']:,} faixas | "
             f"{linha['tamanho_gb']:.2f} GB | {pct:.1f}% do peso"
         )
-    for container, (t, com_mood, com_mov) in sorted(cobertura.items()):
-        readme.append(f"- Cobertura MOOD/MOVEMENT em {container}: {com_mood / t:.1%} / {com_mov / t:.1%}")
+    for container, (t, com_sub, com_tipo) in sorted(cobertura.items()):
+        readme.append(f"- Cobertura em {container}: Subgenre {com_sub / t:.1%} | Album Type {com_tipo / t:.1%}")
     concordancia = (total - fila_qtd) / total * 100 if total else 0.0
     readme.append(f"- Reconciliação pasta × tag: {concordancia:.1f}% (fila de revisão: {fila_qtd} casos, ADR-002)")
     readme.append(MARCA_FIM)

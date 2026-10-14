@@ -15,11 +15,15 @@ Notas:
   quando ela tem tipo; vem da tag nas famílias de dialeto livre.
 
 - **tipo_origem** — de onde o tipo_final veio: "pasta" ou "tag".
+  
+- subgenero_tag = MOOD (no dialeto do acervo: **Subgenre**); tipo_album_tag =
+  MOVEMENTNAME (no dialeto do acervo: **Album Type**); cobertura 100%.
 
 
 <!-- COLUNAS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
-**Contrato prata atual: 38 colunas** *(gerado do cabeçalho do acervo_prata.csv em 14/10/2026 19:00)*
+**Contrato prata atual: 38 colunas** *(gerado do cabeçalho do acervo_prata.csv em 14/10/2026 19:59)*
 
 `caminho_relativo` · `nome_arquivo` · `genero` · `subgenero_pasta` · `tipo_pasta` · `tipo_final` · `tipo_origem` · `pasta_pai` · `pasta_album` · `pasta_disco` · `titulo` · `artista` · `album` · `album_artista` · `compositor` · `genero_tag` · `subgenero_tag` · `tipo_album_tag` · `data_tag` · `ano` · `decada` · `faixa_n` · `disco_n` · `container` · `formato_tag` · `codec` · `encoder` · `bitrate_kbps` · `modo_bitrate` · `sample_rate_hz` · `bits_por_amostra` · `canais` · `duracao_seg` · `duracao_legivel` · `tamanho_bytes` · `tamanho_mb` · `mtime_iso` · `data_modificacao`
 <!-- /COLUNAS-AUTO -->
+
 
