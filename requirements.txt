@@ -1,2 +1,5 @@
 python-dotenv
 mutagen
+pyarrow
+duckdb
+boto3

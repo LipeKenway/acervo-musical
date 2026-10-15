@@ -1,124 +1,87 @@
-# Glossário de Palavras Mágicas
+# Glossário do Acervo Musical
 
-Dicionário vivo do projeto Acervo Musical.
-Cada termo: tradução, analogia do dia a dia e onde vive no projeto.
-Regra da casa: palavra nova aprendida = entrada nova aqui.
+Glossário vivo do projeto. Regra da casa: palavra nova que entra no
+vocabulário vira entrada aqui, com tradução de júnior para júnior.
 
-## Dados e pipeline
-- **CDC (Change Data Capture)** — processar só o que mudou desde a última rodada.
-  Analogia: extrato do banco (você não reconta o cofre todo dia).
-  No projeto: mtime dos arquivos; 3 horas → segundos.
-- **Watermark** — o "save" que marca até onde o pipeline já processou.
-  Analogia: save do videogame.
-  No projeto: Fase 3 (tabela de estado); o legado usava o mtime do CSV (frágil).
-- **Bronze / Prata / Ouro (Medallion)** — camadas: foto crua do disco / planilha
-  limpa / resumos prontos para BI.
-  Analogia: minério bruto → metal refinado → joia na vitrine.
-  No projeto: inventario_acervo.csv / acervo_prata.csv / futuros agregados ouro.
-- **Drift** — quando a realidade (disco) diverge do inventário (bronze).
-  Analogia: mudança de endereço sem avisar o correio.
-  No projeto: o caso da pasta " Rubycon", pego pela quarentena.
-- **Quarentena** — ala hospitalar: registro que falha vai para lá COM motivo,
-  em vez de sujar a planilha. No projeto: quarentena.csv.
-- **Reconciliação** — cruzar números de fontes diferentes até a diferença ser
-  explicada. Analogia: conferir cupom com a fatura.
-  No projeto: o caso dos 80 arquivos (79 PDFs + 1 .mov).
-- **Cobertura** — % de registros com um campo preenchido.
-  No projeto: MOOD/MOVEMENT 100% em FLAC, M4A e MP3.
-- **mtime** — a data de "última modificação" que o sistema operacional carimba
-  no arquivo. É a chave do CDC e do drift.
+## Camadas e formatos
 
-## Processo e qualidade
-- **Smoke test / Piloto (--amostra)** — rodar numa amostra minúscula antes do
-  run completo. Analogia: provar a comida na colher antes de servir o banquete.
-- **Resume / Checkpoint (--completar)** — continuar de onde parou, processando
-  só o que falta. Analogia: lista de adesivos (visitar só as casas sem adesivo).
-- **Idempotência** — rodar 2x dá o mesmo resultado que rodar 1x.
-  Analogia: salvar o despertador de 7h duas vezes não cria dois despertadores.
-- **Upsert / Merge** — atualiza se existe, insere se não (Fase 3, Postgres).
-- **Replace** — apagar e recriar a tabela inteira a cada carga (ingênuo e
-  destrutivo). Dívida do legado.
-- **Linter (ruff)** — corretor ortográfico do código.
-- **Type hints** — etiquetas "isso é texto, isso é número" nas funções.
-- **mypy** — o fiscal que confere se as etiquetas estão certas.
-- **pytest** — robô que roda os testes das suas funções.
-- **pre-commit** — porteiro que confere o commit antes de ele entrar.
-- **CI/CD (GitHub Actions)** — robô na nuvem que roda testes a cada push.
-- **gitleaks** — cachorro farejador de senha vazada no código.
-- **Dependabot** — bot que avisa quando biblioteca sua fica velha.
-- **ADR** — documento do "por que escolhi X e não Y".
+- **Bronze / prata / ouro (medallion)** — três camadas de refinamento:
+  bronze é a foto crua do disco; prata é a tabela limpa e reconciliada;
+  ouro são os resumos prontos para BI. Analogia: minério → lingote →
+  joia.
+- **Parquet** — formato de arquivo colunar: guarda os dados por coluna
+  (não por linha), comprime melhor e lê só o que a query precisa.
+  Analogia: fichário organizado por campo, em vez de fichas inteiras.
+- **CSV utf-8-sig** — planilha de texto com BOM: legível no Excel sem
+  virar hieróglifo; é o formato das camadas bronze/prata/ouro em CSV.
+- **Snappy** — compressão rápida que o Parquet usa por padrão: troca
+  alguns pontos de razão de compressão por muita velocidade.
 
-## Infra e Docker
-- **Container** — programa rodando numa caixa isolada.
-  Analogia: kitnet alugada: você usa a cozinha sem mexer na casa do vizinho.
-- **docker-compose** — a planta baixa das caixas.
-- **Imagem** — o molde de onde as caixas (containers) são fabricadas.
-- **Volume / Mount** — a ponte entre o seu disco e a caixa.
-- **:ro (read-only)** — vitrine de museu: dá para olhar, o vidro não deixa tocar.
-- **Porta** — a porta numerada por onde entra conexão num serviço.
-- **Bind (127.0.0.1)** — decidir quem pode bater na porta: 127.0.0.1 = interfone
-  só dentro do apartamento; 0.0.0.0 = interfone na calçada.
-- **healthcheck** — o teste de "estou vivo" que o container responde de tempos
-  em tempos.
-- **depends_on: service_healthy** — só subir quando o dependente responder
-  "estou vivo". Analogia: abrir o restaurante só com o gás aceso.
-- **Âncoras YAML (& / <<:)** — bloco reutilizável para não copiar-colar no compose.
-- **Variável de ambiente** — recado de configuração que só o serviço lê.
-- **.env** — o cofre local das variáveis; o Git não enxerga.
-- **restart: unless-stopped** — a geladeira que religa sozinha após cair a luz.
-- **Executor (LocalExecutor)** — o modelo de turno: quem executa as tarefas
-  (LocalExecutor = na cozinha da sua própria máquina).
-- **Fernet** — criptografia nativa do Airflow para Connections.
+## Lake e object storage
 
-## Orquestração (Airflow)
-- **DAG** — a receita: passos ordenados, sentido único, sem loops.
-- **Scheduler** — o gerente que lê a receita e libera os pratos na hora certa.
-- **Worker** — o cozinheiro que executa.
-- **Webserver** — a recepção: o painel onde você vê tudo.
-- **XCom** — post-it entre tarefas (dado pequeno).
-- **TaskFlow API** — escrever DAGs como funções Python que passam valores.
-- **catchup=False** — o jornaleiro esperto: não deixa pilha de jornais velhos
-  quando você passa dias fora.
-- **on_failure_callback** — a cláusula "se quebrar, avisa fulano" do contrato.
+- **Object storage** — armazenamento que trata tudo como objeto com
+  chave (caminho), sem sistema de arquivos por baixo. Analogia:
+  guarda-volumes com ticket, em vez de estante com prateleiras.
+- **Bucket** — a caixa principal dentro do object storage; aqui,
+  `acervo-musical`.
+- **Prefixo** — o "começo do caminho" da chave; é assim que nascem as
+  zonas e pastas lógicas sem existir pasta de verdade.
+- **Zonas do lake (raw/curated/gold)** — raw é a cópia imutável de como
+  chegou; curated é o Parquet limpo e particionado; gold são os
+  agregados modelados. É o medallion morando no object storage.
+- **Endpoint** — o endereço (URL) onde o serviço S3 atende; o boto3 usa
+  `endpoint_url` para falar com o lake local em vez da AWS.
+- **boto3** — a biblioteca oficial da AWS para Python; treinada no
+  SeaweedFS local, usada de verdade na Fase 5 (ADR-004).
+- **MinIO** — o S3 caseiro original do projeto; arquivado pelo upstream
+  em 2026 (Docker Hub sem imagem, quay restrito, CDN com 410 Gone).
+  Hoje é peça de museu (ADR-006).
+- **SeaweedFS** — o substituto ativo do MinIO: binário único, API S3,
+  nosso lake local. Analogia: o mesmo guarda-volumes, outro fabricante.
+- **EOL (end-of-life)** — quando uma ferramenta para de receber
+  manutenção. O MinIO OSS teve EOL no meio da Fase 2; a resposta foi
+  ADR + fallback ativo, não pânico.
 
-## Formatos e armazenamento
-- **CSV utf-8-sig** — planilha de texto que o Excel abre sem quebrar acentos.
-- **Parquet** — formato colunar comprimido: menor e mais rápido que CSV.
-  Analogia: arquivo organizado por assunto, não por ordem de chegada.
-- **pyarrow** — a biblioteca que lê/escreve Parquet.
-- **DuckDB** — banco que mora dentro do Python; SQL direto em Parquet.
-- **MinIO** — S3 caseiro: armazenamento de objeto local, de graça.
-- **S3** — armazenamento da AWS (Fase 5; só metadados, nunca o áudio).
-- **Star schema** — um sol (tabela de fatos) com planetas em volta (dimensões).
-- **dbt** — SQL como código de engenharia: versionado, testado, documentado.
+## Particionamento e consulta
 
-## Áudio (o seu domínio)
-- **Tag** — a carteira de identidade dentro do arquivo de áudio.
-- **ID3 v2.3 / v2.4** — as "gerações" de tags do MP3; a v2.3 não tem MOOD/MOVEMENT.
-- **MOOD / MOVEMENTNAME** — os campos que você adotou como subgênero e tipo de álbum.
-- **Bitrate (kbps)** — quantos bits por segundo o áudio usa (320 = mais denso).
-- **CBR / VBR / ABR** — bitrate constante / variável / adaptável.
-- **Sample rate (Hz)** — "fotos" do som por segundo (44100 = padrão CD).
-- **Bits por amostra** — a precisão de cada foto (16/24 bits no FLAC).
-- **Codec** — o empacotamento do áudio (AAC, FLAC, MP3...).
-- **mutagen** — a biblioteca Python que lê todas essas identidades.
+- **Particionamento hive** — pastas `coluna=valor/` (ex.:
+  `decada=1990/`) que os engines leem como coluna; organiza o endereço
+  dos dados, não o conteúdo.
+- **Partition pruning** — quando a query filtra pela coluna
+  particionada, o engine abre só as pastas daquele valor e poda o
+  resto. Analogia: ir direto na gaveta certa do fichário.
+- **DuckDB** — banco analítico embutido (sem servidor): SQL direto em
+  Parquet/CSV/arquivos. Analogia: um motor de query que mora dentro do
+  seu Python.
+- **Hive partitioning no DuckDB** — a flag que faz o DuckDB reconstruir
+  a coluna de partição a partir do nome das pastas.
 
-## Segurança e carreira
-- **Menor privilégio** — dar a cada usuário só a chave mínima que ele precisa.
-- **Service account** — usuário dedicado de um sistema (app escreve; BI só lê).
-- **Pseudonimização (SHA-256)** — transformar o caminho numa impressão digital
-  irreconhecível.
-- **RPO / RTO** — quanto de dado você aceita perder / quanto tempo aceita ficar
-  fora do ar.
-- **3-2-1** — 3 cópias, 2 mídias, 1 fora de casa.
-- **Restore testado** — backup que nunca foi restaurado é promessa, não backup.
-- **Audit log** — o caderno de quem mudou o quê, e quando.
-- **Observabilidade / métricas** — sinais vitais do pipeline.
-- **Budgets** — o alerta de cobrança (o guarda-chuva da nuvem).
-- **IaC / Terraform** — infraestrutura por código, não por cliques.
-- **War story** — um problema real resolvido, contado como história de entrevista.
+## Qualidade de dados
+
+- **Quarentena** — ala hospitalar: arquivo que falhou na extração vai
+  para lá com o motivo escrito, sem sujar a prata.
+- **CDC por mtime** — change data capture caseiro: só reprocessa o que
+  mudou no disco desde a última foto.
+- **Reconciliação pasta × tag** — o reconciliador compara a taxonomia
+  das pastas com as tags Mp3tag e produz a fila de revisão humana.
+- **Fila de revisão humana** — os casos em que pasta e tag discordam e
+  só você (dono do acervo) pode decidir.
+- **Cobertura** — percentual de linhas com tag preenchida (Subgenre /
+  Album Type); 100% nos três containers.
+
+## Orquestração e warehouse (Fases 3-4)
+
+- **Watermark** — marca d'água de estado: "até onde o pipeline já foi";
+  base do CDC incremental da Fase 3.
+- **Star schema** — modelagem dimensional: tabelas dim_* (quem/onde)
+  girando em torno da fact_* (o que aconteceu).
+- **dbt** — SQL com versionamento, testes e linhagem; o dono do ouro na
+  Fase 3.
+- **Airflow / DAG / TaskFlow** — orquestrador: agenda, retries e
+  histórico; TaskFlow é a API de decorators que usaremos na Fase 4.
 
 ## CI e colaboração
+
 - **Personal Access Token (PAT)** — crachá de visitante do GitHub:
   substitui a senha no push, com escopo e prazo, cancelável sem trocar
   a fechadura.
@@ -131,23 +94,11 @@ Regra da casa: palavra nova aprendida = entrada nova aqui.
   aprovado e verde. Adiada por decisão (ADR-003).
 - **Badge** — o selinho no README mostrando o status do CI ao mundo.
 
-## FASE 2 — lago moderno
-- **Object storage (armazenamento de objetos)** — cada arquivo é um
-  objeto com endereço (chave), acessado por HTTP via API S3. Analogia:
-  guarda-volumes com ticket, em vez de prateleiras fixas.
-- **Bucket** — a caixa principal do object storage. No projeto:
-  `acervo-musical` no MinIO.
-- **Prefixo** — o começo da chave que funciona como "pasta"
-  (raw/, curated/, gold/). Não é pasta de verdade: é etiqueta no nome.
-- **Endpoint** — o endereço (URL) onde o serviço atende. O boto3 usa
-  `endpoint_url` para falar com o MinIO em vez da AWS.
-- **boto3** — biblioteca oficial da AWS para Python; treinada no MinIO,
-  usada de verdade na Fase 5.
+## Git e recuperação
 
-  ## Git e recuperação
 - **Clone** — baixar o repositório com todo o histórico numa máquina
-  nova. Analogia: receber a cópia completa do caderno, não só a
-  última página.
+  nova. Analogia: receber a cópia completa do caderno, não só a última
+  página.
 - **Rebase (git pull --rebase)** — reaplicar seus commits em cima dos
   que chegaram do remoto, mantendo a história em linha reta.
 - **Credential Manager** — o cofre do Windows que guarda seu token
@@ -156,3 +107,16 @@ Regra da casa: palavra nova aprendida = entrada nova aqui.
   pelo GitHub; formatar o PC não custa mais o setup.
 - **PAT com validade** — crachá com data de expiração: token vencido
   não abre a porta; gerar outro é rotina saudável (30 dias).
+- **Stop-parsing token (--%)** — diz ao PowerShell: "repasse tudo
+  literalmente ao executável, sem interpretar nada". Salvou nossas
+  flags do weed (`-ip.bind` tinha virado "-ip" + ".bind=...").
+
+## Docs vivas
+
+- **ADR (Architecture Decision Record)** — registro curto de uma
+  decisão: contexto, decisão, consequência. Memória do "porquê".
+- **Doc gerada (blocos marcados)** — trecho de doc reescrito pelo
+  pipeline entre marcadores HTML (NUMEROS-AUTO, COLUNAS-AUTO); o
+  gerador só toca entre eles, a prosa fora é sagrada.
+- **Snapshot datado** — número publicado com data de validade explícita:
+  "isto era verdade em 14/10/2026 19:59".
