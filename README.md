@@ -78,9 +78,9 @@ Zonas no lake S3 local (SeaweedFS, ADR-006), bucket `acervo-musical`:
 
 | Métrica | CSV | Parquet | Ganho |
 |---|---|---|---|
-| Tamanho | <mb_csv do print> MB | <mb_parquet do print> MB | **<ganho>x menor** |
-| Leitura completa (pyarrow) | <t_csv>s | <t_parquet>s | CSV vence (overhead fixo em escala pequena) |
-| Query analítica (DuckDB) | <q_csv>s | <q_parquet>s | **<q_ganho>x mais rápido** |
+| Tamanho | 43,3 MB | 12,0 MB | **3,6x menor** |
+| Leitura completa (pyarrow) | 0,02s | 0,07s | CSV vence (overhead fixo em escala pequena) |
+| Query analítica (DuckDB) | 0,12s | 0,03s | **4,2x mais rápido** |
 
 Honestidade de escala: com 43 MB tudo cabe em memória e o overhead
 fixo de abrir 8 partições domina a leitura completa; o ganho colunar
