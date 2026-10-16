@@ -70,6 +70,10 @@ pois são decisões de dado. ADRs de engenharia/infra nascem aqui.
   meio da Fase 2; avaliei alternativas (LocalStack, SeaweedFS,
   Garage, só filesystem) e escolhi SeaweedFS com decisão
   registrada".
+- Nota operacional: sem signing key de IAM, o ListBuckets do
+  SeaweedFS retorna vazio para qualquer caller; existência de
+  bucket é verificada com head_bucket (padrão adotado no
+  csv_para_parquet.py). ListObjectsV2 e PutObject funcionam normalmente.
 
 ## ADR-007 — Lake local sem criptografia/IAM
 

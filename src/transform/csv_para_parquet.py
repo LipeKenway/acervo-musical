@@ -31,6 +31,7 @@ import pyarrow as pa  # type: ignore[import-untyped]
 import pyarrow.compute as pc  # type: ignore[import-untyped]
 import pyarrow.csv as pcsv  # type: ignore[import-untyped]
 import pyarrow.parquet as pq  # type: ignore[import-untyped]
+from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 
 PRATA = Path("data/processed/acervo_prata.csv")
@@ -52,19 +53,20 @@ def cliente_s3() -> tuple:
     s3 = boto3.client(
         "s3",
         endpoint_url=endpoint,
-        aws_access_key_id="acervo",
-        aws_secret_access_key="acervo-local",
+        aws_access_key_id=os.getenv("LAKE_ACCESS_KEY", "acervo"),
+        aws_secret_access_key=os.getenv("LAKE_SECRET_KEY", "acervo-local"),
     )
     return s3, bucket
 
 
 def garantir_bucket(s3, bucket: str) -> None:
-    nomes = [b["Name"] for b in s3.list_buckets()["Buckets"]]
-    if bucket not in nomes:
+    """head_bucket é a pergunta confiável; ListBuckets mente sem IAM."""
+    try:
+        s3.head_bucket(Bucket=bucket)
+        print(f"  ✅ bucket já existe: {bucket}")
+    except ClientError:
         s3.create_bucket(Bucket=bucket)
         print(f"  ✅ bucket criado: {bucket}")
-    else:
-        print(f"  ✅ bucket já existe: {bucket}")
 
 
 def subir_arvore(s3, bucket: str, raiz: Path, prefixo: str) -> int:
