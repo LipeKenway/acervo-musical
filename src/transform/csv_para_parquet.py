@@ -22,6 +22,7 @@ Uso: python src\transform\csv_para_parquet.py
 
 import csv
 import os
+import shutil
 import time
 from pathlib import Path
 
@@ -80,6 +81,21 @@ def subir_arvore(s3, bucket: str, raiz: Path, prefixo: str) -> int:
     return n
 
 
+def purgar_prefixo(s3, bucket: str, prefixo: str) -> int:
+    """Apaga todos os objetos sob prefixo/ para um rebuild limpo."""
+    n = 0
+    pag = s3.get_paginator("list_objects_v2")
+    for page in pag.paginate(Bucket=bucket, Prefix=prefixo):
+        objs = page.get("Contents", [])
+        if objs:
+            s3.delete_objects(
+                Bucket=bucket,
+                Delete={"Objects": [{"Key": o["Key"]} for o in objs]},
+            )
+            n += len(objs)
+    return n
+
+
 def ler_prata():
     """Lê o CSV da prata e normaliza decada (null -> 0 = 'sem ano')."""
     tabela = pcsv.read_csv(PRATA)
@@ -99,7 +115,9 @@ def main() -> None:
     print(f"  {tabela.num_rows:,} linhas | {tabela.num_columns} colunas")
 
     print(f"\nEscrevendo Parquet particionado por década em {LAKE_LOCAL} ...")
-    LAKE_LOCAL.mkdir(parents=True, exist_ok=True)
+    if LAKE_LOCAL.exists():
+        shutil.rmtree(LAKE_LOCAL)  # curated é derivado: rebuild do zero
+    LAKE_LOCAL.mkdir(parents=True)
     pq.write_to_dataset(
         tabela,
         root_path=str(LAKE_LOCAL),
@@ -113,6 +131,8 @@ def main() -> None:
     print(f"  partições: {', '.join(decadas)}")
 
     print("\nSubindo para o lake (API S3)...")
+    n_purga = purgar_prefixo(s3, bucket, "curated/acervo_prata/")
+    print(f"  🧹 objetos antigos purgados do curated: {n_purga:,}")
     s3.upload_file(str(PRATA), bucket, "raw/acervo_prata.csv")
     n_curated = subir_arvore(s3, bucket, LAKE_LOCAL, "curated/acervo_prata/")
     print(f"  ✅ raw: 1 objeto | curated: {n_curated:,} objetos")
