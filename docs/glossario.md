@@ -79,6 +79,15 @@ vocabulário vira entrada aqui, com tradução de júnior para júnior.
   Fase 3.
 - **Airflow / DAG / TaskFlow** — orquestrador: agenda, retries e
   histórico; TaskFlow é a API de decorators que usaremos na Fase 4.
+- **Raiz (root)** — cada "prédio" onde o acervo mora (f, d);
+  `raiz` + `caminho_relativo` formam o endereço único da faixa
+  (ADR-009). Analogia: biblioteca com anexo — duas salas de mesmo
+  nome em prédios diferentes não se confundem.
+- **Upsert (ON CONFLICT DO UPDATE)** — atualiza se a chave já
+  existe, insere se não; é o que torna o loader idempotente
+  (rerodar nunca duplica). Analogia: carimbar a ficha existente em
+  vez de empilhar outra igual.
+
 
 ## CI e colaboração
 

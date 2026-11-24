@@ -75,13 +75,13 @@ Zonas no lake S3 local (SeaweedFS, ADR-006), bucket `acervo-musical`:
 - `curated/` — Parquet particionado por década (hive)
 - `gold/` — agregados modelados (FASE 3, dbt)
 
-### Benchmark CSV × Parquet (acervo real, 112.102 faixas)
+### Benchmark CSV × Parquet (acervo real, 117.580 faixas)
 
 | Métrica | CSV | Parquet | Ganho |
 |---|---|---|---|
-| Tamanho | 43,3 MB | 12,0 MB | **3,6x menor** |
-| Leitura completa (pyarrow) | 0,02s | 0,07s | CSV vence (overhead fixo em escala pequena) |
-| Query analítica (DuckDB) | 0,12s | 0,03s | **4,2x mais rápido** |
+| Tamanho | 45,7 MB | 12,6 MB | **3,6x menor** |
+| Leitura completa (pyarrow) | 0,04s | 0,10s | CSV vence (overhead fixo em escala pequena) |
+| Query analítica (DuckDB) | 0,22s | 0,04s | **5,4x mais rápido** |
 
 Honestidade de escala: com 43 MB tudo cabe em memória e o overhead
 fixo de abrir 8 partições domina a leitura completa; o ganho colunar

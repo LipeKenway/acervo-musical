@@ -1,9 +1,17 @@
-# Hierarquia do Acervo (F:\Acervo (Musicas))
+# Hierarquia do Acervo (raízes declaradas no .env, ADR-009)
 
 Taxonomia oficial das pastas, usada pelo scanner e pelo modelo de dados.
 
 ## Padrão geral
 genero / [subgenero_ou_midia] / tipo_lancamento / [pasta_album] / [pasta_disco] / arquivo
+
+## Duas raízes, uma taxonomia (ADR-009)
+O acervo mora em duas raízes declaradas em `MUSIC_LIBRARY_PATHS`
+(.env): o HD externo (raiz `f`) e a partição interna (raiz `d`).
+Ambas replicam exatamente a mesma taxonomia descrita abaixo; a
+coluna `raiz` + `caminho_relativo` formam o endereço único de cada
+faixa. Todas as regras, vocabulários e dialetos deste documento
+valem iguais nas duas raízes.
 
 ## Níveis
 1. Gênero (ou macro-gênero): Experimental, Soundtrack, Dance, ...
@@ -52,6 +60,14 @@ Collections, Collection, Mixtapes, Mixtape, Lives, Live, Remixes, Remix
 
 Diferença de dialeto NÃO é conflito. O relatorio_conflitos.csv
 registra apenas anomalias pós-tradução — fila de revisão humana.
+
+## Duas raízes, uma taxonomia (ADR-009)
+O acervo mora em duas raízes declaradas em `MUSIC_LIBRARY_PATHS`
+(.env): o HD externo (raiz `f`) e a partição interna (raiz `d`).
+Ambas replicam exatamente a mesma taxonomia descrita acima; a
+coluna `raiz` + `caminho_relativo` formam o endereço único de cada
+faixa. Todas as regras, vocabulários e dialetos deste documento
+valem iguais nas duas raízes.
 
 ### ADR-001 — Fonte de verdade para tipo de lançamento
 - Contexto: 577 faixas (0,52%) com pasta e tag discordando

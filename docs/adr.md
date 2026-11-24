@@ -84,3 +84,20 @@ pois são decisões de dado. ADRs de engenharia/infra nascem aqui.
   segredos dummy. S3 real na Fase 5 traz SSE e IAM nativamente.
 - Consequência: risco controlado para o ambiente de treino;
   documentado para não virar "padrão esquecido".
+
+  ## ADR-009 — Acervo multi-raiz (dois prédios, uma taxonomia)
+- Contexto: o HD externo F: lotou; downloads novos passaram a
+  cair em D:\Acervo (PT 2), que replica a mesma taxonomia. O
+  pipeline monorraiz deixaria o anexo invisível e criaria colisões
+  de caminho_relativo entre raízes.
+- Decisão: MUSIC_LIBRARY_PATHS (lista ';' no .env) + coluna `raiz`
+  (letra do drive) na bronze/prata/quarentena; chave natural
+  (raiz, caminho_relativo); path_hash = sha256(raiz|relativo) no
+  warehouse. Migração única no extractor marcou as linhas antigas
+  como raiz primária. Duplicatas físicas = duas linhas honestas
+  (bronze é foto do disco); dedup é assunto de ouro, se um dia
+  fizer sentido.
+- Consequência: prata 38 -> 39 colunas (COLUNAS-AUTO se adapta);
+  reconciliador/agregados/Parquet/DuckDB inalterados na lógica;
+  deletes continuam fora do escopo do --completar (ADR-002): linhas
+  órfãs são dívida conhecida, não bug.
