@@ -9,4 +9,5 @@ select = ["E", "F", "W", "I"]
 known-first-party = ["src", "tests"]
 
 [tool.mypy]
-ignore_missing_imports = true
+mypy_path = "."
+explicit_package_bases = true

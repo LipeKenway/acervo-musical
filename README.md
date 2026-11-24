@@ -54,16 +54,17 @@ Setas cheias = existe hoje; setas pontilhadas = roadmap.
 ## Números
 
 <!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
-**112,102 faixas | 922.79 GB | 315.4 dias de áudio** *(snapshot de 15/10/2026 23:10)*
+**117,580 faixas | 960.70 GB | 331.6 dias de áudio** *(snapshot de 23/11/2026 23:06)*
 
-- MP3: 67,642 faixas | 636.46 GB | 69.0% do peso
-- M4A: 44,160 faixas | 281.06 GB | 30.5% do peso
-- FLAC: 300 faixas | 5.27 GB | 0.6% do peso
+- MP3: 67,773 faixas | 637.70 GB | 66.4% do peso
+- M4A: 49,506 faixas | 317.72 GB | 33.1% do peso
+- FLAC: 301 faixas | 5.29 GB | 0.6% do peso
 - Cobertura em FLAC: Subgenre 100.0% | Album Type 100.0%
 - Cobertura em M4A: Subgenre 100.0% | Album Type 100.0%
 - Cobertura em MP3: Subgenre 100.0% | Album Type 100.0%
-- Reconciliação pasta × tag: 99.6% (fila de revisão: 410 casos, ADR-002)
+- Reconciliação pasta × tag: 99.7% (fila de revisão: 410 casos, ADR-002)
 <!-- /NUMEROS-AUTO -->
+
 
 
 ## Lago de dados (FASE 2)

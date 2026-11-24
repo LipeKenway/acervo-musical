@@ -1,8 +1,9 @@
-r"""Extrator de metadados (camada prata) — versão final.
+r"""Extrator de metadados (camada prata) — versão final multi-raiz.
 
-Lê o inventário bronze, abre cada áudio com mutagen e grava:
+Lê o inventário bronze (agora com coluna `raiz`, ADR-009), abre cada
+áudio com mutagen e grava:
 - data/processed/acervo_prata.csv          (contrato prata, legível p/ Excel)
-- data/processed/quarentena.csv            (falhas com motivo)
+- data/processed/quarentena.csv            (falhas com motivo, com raiz)
 - data/exports/historico_armazenamento.csv (snapshot p/ gráficos)
 
 Modos de execução:
@@ -10,12 +11,16 @@ Modos de execução:
   --amostra N   piloto: processa N linhas e SÓ IMPRIME (não escreve nada)
   --completar   resume: processa só o que falta na prata e ANEXA
 
+O acervo pode morar em várias raízes (MUSIC_LIBRARY_PATHS no .env);
+cada linha bronze diz em qual prédio mora, e o extractor abre o
+arquivo na raiz certa. Migração única: prata antiga (sem `raiz`)
+ganha raiz=primária uma vez, ao subir.
+
 O relatório de anomalias pasta x tag mora no reconciliador.py
 (um dono por artefato). Modo SOMENTE LEITURA na biblioteca.
 """
 
 import csv
-import os
 import re
 import sys
 import time
@@ -26,6 +31,10 @@ from pathlib import Path
 import mutagen
 from dotenv import load_dotenv
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from src.ingest.raizes import raizes_do_acervo  # noqa: E402
+
 BRONZE = Path("data/processed/inventario_acervo.csv")
 PRATA = Path("data/processed/acervo_prata.csv")
 QUARENTENA = Path("data/processed/quarentena.csv")
@@ -34,20 +43,41 @@ HISTORICO = Path("data/exports/historico_armazenamento.csv")
 SEM_TIPO = "(sem tipo na pasta)"
 
 TIPOS_LANCAMENTO = {
-    "albums", "album", "singles", "single", "eps", "ep",
-    "compilations", "compilation", "collections", "collection",
-    "mixtapes", "mixtape", "lives", "live", "remixes", "remix",
+    "albums",
+    "album",
+    "singles",
+    "single",
+    "eps",
+    "ep",
+    "compilations",
+    "compilation",
+    "collections",
+    "collection",
+    "mixtapes",
+    "mixtape",
+    "lives",
+    "live",
+    "remixes",
+    "remix",
 }
 
 TIPO_CANONICO = {
-    "album": "Albums", "albums": "Albums",
-    "ep": "EP", "eps": "EP",
-    "single": "Singles", "singles": "Singles",
-    "compilation": "Compilations", "compilations": "Compilations",
-    "collection": "Collections", "collections": "Collections",
-    "mixtape": "Mixtapes", "mixtapes": "Mixtapes",
-    "live": "Lives", "lives": "Lives",
-    "remix": "Remixes", "remixes": "Remixes",
+    "album": "Albums",
+    "albums": "Albums",
+    "ep": "EP",
+    "eps": "EP",
+    "single": "Singles",
+    "singles": "Singles",
+    "compilation": "Compilations",
+    "compilations": "Compilations",
+    "collection": "Collections",
+    "collections": "Collections",
+    "mixtape": "Mixtapes",
+    "mixtapes": "Mixtapes",
+    "live": "Lives",
+    "lives": "Lives",
+    "remix": "Remixes",
+    "remixes": "Remixes",
 }
 
 REGEX_DISCO = re.compile(r"^(cd|disc|disco)\s*\d+$", re.IGNORECASE)
@@ -75,24 +105,57 @@ CHAVES_TAGS = {
 }
 
 MAPA_CONTAINER = {
-    "MP3": "MP3", "MP4": "M4A", "FLAC": "FLAC", "OggVorbis": "OGG",
-    "WMA": "WMA", "Wave": "WAV", "AAC": "AAC",
+    "MP3": "MP3",
+    "MP4": "M4A",
+    "FLAC": "FLAC",
+    "OggVorbis": "OGG",
+    "WMA": "WMA",
+    "Wave": "WAV",
+    "AAC": "AAC",
 }
 
 MAPA_FORMATO_TAG = {"MP4Tags": "MP4", "VComment": "Vorbis", "ASF": "ASF"}
 
 CAMPOS_PRATA = [
-    "caminho_relativo", "nome_arquivo",
-    "genero", "subgenero_pasta", "tipo_pasta", "tipo_final", "tipo_origem",
-    "pasta_pai", "pasta_album", "pasta_disco",
-    "titulo", "artista", "album", "album_artista", "compositor",
-    "genero_tag", "subgenero_tag", "tipo_album_tag",
-    "data_tag", "ano", "decada", "faixa_n", "disco_n",
-    "container", "formato_tag", "codec", "encoder",
-    "bitrate_kbps", "modo_bitrate",
-    "sample_rate_hz", "bits_por_amostra", "canais",
-    "duracao_seg", "duracao_legivel", "tamanho_bytes", "tamanho_mb",
-    "mtime_iso", "data_modificacao",
+    "raiz",
+    "caminho_relativo",
+    "nome_arquivo",
+    "genero",
+    "subgenero_pasta",
+    "tipo_pasta",
+    "tipo_final",
+    "tipo_origem",
+    "pasta_pai",
+    "pasta_album",
+    "pasta_disco",
+    "titulo",
+    "artista",
+    "album",
+    "album_artista",
+    "compositor",
+    "genero_tag",
+    "subgenero_tag",
+    "tipo_album_tag",
+    "data_tag",
+    "ano",
+    "decada",
+    "faixa_n",
+    "disco_n",
+    "container",
+    "formato_tag",
+    "codec",
+    "encoder",
+    "bitrate_kbps",
+    "modo_bitrate",
+    "sample_rate_hz",
+    "bits_por_amostra",
+    "canais",
+    "duracao_seg",
+    "duracao_legivel",
+    "tamanho_bytes",
+    "tamanho_mb",
+    "mtime_iso",
+    "data_modificacao",
 ]
 
 
@@ -172,7 +235,7 @@ def classificar(partes: list[str]) -> dict:
         }
 
     cadeia = partes[:idx]
-    pai, album, disco = _pastas_finais(partes[idx + 1:])
+    pai, album, disco = _pastas_finais(partes[idx + 1 :])
     return {
         "genero": cadeia[0] if cadeia else "(raiz)",
         "subgenero_pasta": "/".join(cadeia[1:]) or None,
@@ -220,9 +283,7 @@ def dados_tecnicos(arq) -> dict:
 
     return {
         "container": container,
-        "codec": getattr(info, "codec", None)
-        or getattr(info, "codec_description", None)
-        or container,
+        "codec": getattr(info, "codec", None) or getattr(info, "codec_description", None) or container,
         "encoder": encoder,
         "bitrate_kbps": round(info.bitrate / 1000) if getattr(info, "bitrate", None) else None,
         "modo_bitrate": modo,
@@ -233,12 +294,31 @@ def dados_tecnicos(arq) -> dict:
     }
 
 
+def migrar_prata_se_necessario(raiz_primaria: str) -> None:
+    """Prata pré-multi-raiz (sem coluna raiz) ganha raiz=primária, 1x.
+
+    Verdade do momento da migração: antes de MUSIC_LIBRARY_PATHS só
+    existia uma raiz escaneada, então toda linha antiga pertence a ela.
+    """
+    if not PRATA.exists():
+        return
+    with PRATA.open(encoding="utf-8-sig") as fh:
+        leitor = csv.DictReader(fh)
+        if "raiz" in (leitor.fieldnames or []):
+            return
+        antigas = list(leitor)
+    with PRATA.open("w", newline="", encoding="utf-8-sig") as fh:
+        w = csv.DictWriter(fh, fieldnames=CAMPOS_PRATA)
+        w.writeheader()
+        w.writerows([{**antiga, "raiz": raiz_primaria} for antiga in antigas])
+    print(f"  🔧 migração: {len(antigas):,} linhas antigas -> raiz={raiz_primaria}")
+
+
 def main() -> None:
     load_dotenv()
-    raiz = Path(os.getenv("MUSIC_LIBRARY_PATH", ""))
-    if not raiz.is_dir():
-        raise SystemExit("Erro: MUSIC_LIBRARY_PATH inválido no .env")
-
+    raizes = dict(raizes_do_acervo())
+    raiz_primaria = next(iter(raizes))
+    migrar_prata_se_necessario(raiz_primaria)
     eh_amostra = "--amostra" in sys.argv
     eh_completar = "--completar" in sys.argv
 
@@ -250,15 +330,17 @@ def main() -> None:
         bronze = bronze[:n]
         print(f"=== MODO AMOSTRA: {n} linhas | SÓ IMPRIME, NÃO ESCREVE ===\n")
 
+    faltando = {r["raiz"] for r in bronze} - set(raizes)
+    if faltando:
+        raise SystemExit(f"Erro: bronze cita raiz(es) {sorted(faltando)} ausente(s) no .env")
     if eh_completar and PRATA.exists():
         with PRATA.open(encoding="utf-8-sig") as fh:
-            ja_processados = {r["caminho_relativo"] for r in csv.DictReader(fh)}
+            ja_processados = {(r["raiz"], r["caminho_relativo"]) for r in csv.DictReader(fh)}
         total_bruto = len(bronze)
-        bronze = [r for r in bronze if r["caminho_relativo"] not in ja_processados]
-        print(
-            f"=== MODO COMPLETAR: {total_bruto - len(bronze):,} ok, "
-            f"{len(bronze):,} pendentes ===\n"
-        )
+        bronze = [r for r in bronze if (r["raiz"], r["caminho_relativo"]) not in ja_processados]
+        por_raiz = Counter(r["raiz"] for r in bronze)
+        detalhe = " | ".join(f"{k}: {v:,}" for k, v in sorted(por_raiz.items()))
+        print(f"=== MODO COMPLETAR: {total_bruto - len(bronze):,} ok, {len(bronze):,} pendentes ({detalhe}) ===\n")
 
     total = len(bronze)
     print(f"Extraindo metadados de {total:,} arquivos (somente leitura)...\n")
@@ -272,7 +354,7 @@ def main() -> None:
     inicio = time.time()
 
     for i, row in enumerate(bronze, 1):
-        caminho = raiz / row["caminho_relativo"]
+        caminho = raizes[row["raiz"]] / row["caminho_relativo"]
         try:
             arq = mutagen.File(caminho)
             if arq is None:
@@ -304,38 +386,44 @@ def main() -> None:
 
             historico[(info_pasta["genero"], tec["container"])] += 1
 
-            linhas_prata.append({
-                "caminho_relativo": row["caminho_relativo"],
-                "nome_arquivo": row.get("nome_arquivo") or caminho.name,
-                **info_pasta,
-                "tipo_final": tipo_final,
-                "tipo_origem": tipo_origem,
-                "titulo": pegar_tag(tags, "titulo"),
-                "artista": pegar_tag(tags, "artista"),
-                "album": pegar_tag(tags, "album"),
-                "album_artista": pegar_tag(tags, "album_artista"),
-                "compositor": pegar_tag(tags, "compositor"),
-                "genero_tag": pegar_tag(tags, "genero_tag"),
-                "subgenero_tag": sub_tag,
-                "tipo_album_tag": tipo_tag,
-                "data_tag": data_tag,
-                "ano": ano,
-                "decada": (ano // 10) * 10 if ano else None,
-                "faixa_n": pegar_numero(tags, "faixa"),
-                "disco_n": pegar_numero(tags, "disco"),
-                "formato_tag": formato_tag(arq),
-                **tec,
-                "duracao_legivel": duracao_legivel(tec["duracao_seg"]),
-                "tamanho_bytes": tamanho_bytes,
-                "tamanho_mb": round(tamanho_bytes / 1024 ** 2, 1),
-                "mtime_iso": row["mtime_iso"],
-                "data_modificacao": row["mtime_iso"][:10],
-            })
+            linhas_prata.append(
+                {
+                    "raiz": row["raiz"],
+                    "caminho_relativo": row["caminho_relativo"],
+                    "nome_arquivo": row.get("nome_arquivo") or caminho.name,
+                    **info_pasta,
+                    "tipo_final": tipo_final,
+                    "tipo_origem": tipo_origem,
+                    "titulo": pegar_tag(tags, "titulo"),
+                    "artista": pegar_tag(tags, "artista"),
+                    "album": pegar_tag(tags, "album"),
+                    "album_artista": pegar_tag(tags, "album_artista"),
+                    "compositor": pegar_tag(tags, "compositor"),
+                    "genero_tag": pegar_tag(tags, "genero_tag"),
+                    "subgenero_tag": sub_tag,
+                    "tipo_album_tag": tipo_tag,
+                    "data_tag": data_tag,
+                    "ano": ano,
+                    "decada": (ano // 10) * 10 if ano else None,
+                    "faixa_n": pegar_numero(tags, "faixa"),
+                    "disco_n": pegar_numero(tags, "disco"),
+                    "formato_tag": formato_tag(arq),
+                    **tec,
+                    "duracao_legivel": duracao_legivel(tec["duracao_seg"]),
+                    "tamanho_bytes": tamanho_bytes,
+                    "tamanho_mb": round(tamanho_bytes / 1024**2, 1),
+                    "mtime_iso": row["mtime_iso"],
+                    "data_modificacao": row["mtime_iso"][:10],
+                }
+            )
         except Exception as exc:
-            quarentena.append({
-                "caminho_relativo": row["caminho_relativo"],
-                "motivo": f"{type(exc).__name__}: {exc}",
-            })
+            quarentena.append(
+                {
+                    "raiz": row["raiz"],
+                    "caminho_relativo": row["caminho_relativo"],
+                    "motivo": f"{type(exc).__name__}: {exc}",
+                }
+            )
 
         if i % 5000 == 0:
             print(f"  {i:>7,}/{total:,}  ({time.time() - inicio:.0f}s)")
@@ -349,7 +437,7 @@ def main() -> None:
             w_prata.writerows(linhas_prata)
 
         with QUARENTENA.open("w", newline="", encoding="utf-8") as fh:
-            w_quarentena = csv.DictWriter(fh, fieldnames=["caminho_relativo", "motivo"])
+            w_quarentena = csv.DictWriter(fh, fieldnames=["raiz", "caminho_relativo", "motivo"])
             w_quarentena.writeheader()
             w_quarentena.writerows(quarentena)
 
@@ -375,10 +463,7 @@ def main() -> None:
 
     print("\nCobertura de tags por container (subgênero / tipo álbum):")
     for container, (t, com_mood, com_mov) in sorted(cobertura.items()):
-        print(
-            f"  {container:<6} {t:>7,} arquivos | "
-            f"MOOD {com_mood / t:>6.1%} | MOVEMENT {com_mov / t:>6.1%}"
-        )
+        print(f"  {container:<6} {t:>7,} arquivos | MOOD {com_mood / t:>6.1%} | MOVEMENT {com_mov / t:>6.1%}")
 
     print(f"\nTempo total: {time.time() - inicio:.0f}s")
 

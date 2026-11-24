@@ -4,8 +4,9 @@ Inventário vivo de linguagens, ferramentas e práticas.
 Status: ✅ em uso | ⏳ roadmap (fase) | 🧊 legado |  fora de escopo | ️ adiada por ADR
 
 <!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
-Números: 112,102 faixas | 922.79 GB | 315.4 dias de áudio (snapshot de 15/10/2026 23:10; detalhes no README)
+Números: 117,580 faixas | 960.70 GB | 331.6 dias de áudio (snapshot de 23/11/2026 23:06; detalhes no README)
 <!-- /NUMEROS-AUTO -->
+
 
 
 Repo público: github.com/LipeKenway/acervo-musical
