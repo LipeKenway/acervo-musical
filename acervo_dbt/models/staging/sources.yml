@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: public
+    tables:
+      - name: prata_faixas
+        description: "Camada prata do pipeline (extractor.py)"
+        columns:
+          - name: path_hash
+            description: "Chave natural (sha256 de raiz|caminho_relativo)"
+          - name: raiz
+            description: "Prédio onde a faixa mora (f, d)"
+          - name: caminho_relativo
+            description: "Caminho relativo à raiz"

@@ -1,0 +1,83 @@
+version: 2
+
+models:
+  - name: dim_artista
+    description: "Dimensão de artistas"
+    columns:
+      - name: artista_id
+        data_tests:
+          - unique
+          - not_null
+      - name: nome_artista
+        data_tests:
+          - not_null
+
+  - name: dim_album
+    description: "Dimensão de álbuns"
+    columns:
+      - name: album_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_genero
+    description: "Dimensão de gêneros"
+    columns:
+      - name: genero_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_tipo_lancamento
+    description: "Dimensão de tipos de lançamento (ADR-001: tipo oficial = tag)"
+    columns:
+      - name: tipo_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_decada
+    description: "Dimensão de décadas"
+    columns:
+      - name: decada_id
+        data_tests:
+          - unique
+          - not_null
+
+  - name: fat_faixa
+    description: "Tabela de fatos (faixas musicais)"
+    columns:
+      - name: path_hash
+        data_tests:
+          - unique
+          - not_null
+      - name: artista_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_artista')
+                field: artista_id
+      - name: album_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_album')
+                field: album_id
+      - name: genero_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_genero')
+                field: genero_id
+      - name: tipo_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_tipo_lancamento')
+                field: tipo_id
+      - name: decada_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_decada')
+                field: decada_id
