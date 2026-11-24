@@ -101,3 +101,16 @@ pois são decisões de dado. ADRs de engenharia/infra nascem aqui.
   reconciliador/agregados/Parquet/DuckDB inalterados na lógica;
   deletes continuam fora do escopo do --completar (ADR-002): linhas
   órfãs são dívida conhecida, não bug.
+
+  ## ADR-010 — Propagação no warehouse: watermark para novidades, espelho para ausências
+- Contexto: o watermark (mtime) só enxerga novidades e edições;
+  renomear pasta muda o path_hash sem mudar o mtime, e deletes
+  purgados da prata (modo full) não somem do Postgres sozinhos.
+- Decisão: o loader tem dois regimes: padrão = incremental por
+  watermark (upsert do delta); --sincronizar = espelho completo
+  (watermark ignorado no upsert + delete dos path_hash ausentes
+  da prata).
+- Consequência: runs diários seguem incrementais (segundos); o
+  espelho é a ferramenta consciente de mutirões, renames e purga
+  de fantasmas. Custo medido do full: ~2h13m para 115,7k faixas
+  (24/11/2026) vs segundos do CDC.

@@ -4,8 +4,9 @@ Inventário vivo de linguagens, ferramentas e práticas.
 Status: ✅ em uso | ⏳ roadmap (fase) | 🧊 legado |  fora de escopo | ️ adiada por ADR
 
 <!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
-Números: 117,580 faixas | 960.70 GB | 331.6 dias de áudio (snapshot de 23/11/2026 23:06; detalhes no README)
+Números: 115,694 faixas | 941.02 GB | 325.8 dias de áudio (snapshot de 24/11/2026 15:33; detalhes no README)
 <!-- /NUMEROS-AUTO -->
+
 
 
 

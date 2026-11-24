@@ -87,6 +87,10 @@ vocabulário vira entrada aqui, com tradução de júnior para júnior.
   existe, insere se não; é o que torna o loader idempotente
   (rerodar nunca duplica). Analogia: carimbar a ficha existente em
   vez de empilhar outra igual.
+- **Modo espelho (--sincronizar)** — run do loader que ignora o
+  watermark: upserta a prata inteira e apaga do Postgres o que não
+  existe mais nela. O upsert vê novidades; o espelho vê ausências
+  (ADR-010).
 
 
 ## CI e colaboração

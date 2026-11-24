@@ -54,16 +54,17 @@ Setas cheias = existe hoje; setas pontilhadas = roadmap.
 ## Números
 
 <!-- NUMEROS-AUTO (gerado por agregados_ouro.py; nao editar na mao) -->
-**117,580 faixas | 960.70 GB | 331.6 dias de áudio** *(snapshot de 23/11/2026 23:06)*
+**115,694 faixas | 941.02 GB | 325.8 dias de áudio** *(snapshot de 24/11/2026 15:33)*
 
-- MP3: 67,773 faixas | 637.70 GB | 66.4% do peso
-- M4A: 49,506 faixas | 317.72 GB | 33.1% do peso
-- FLAC: 301 faixas | 5.29 GB | 0.6% do peso
+- MP3: 66,058 faixas | 619.98 GB | 65.9% do peso
+- M4A: 49,473 faixas | 317.42 GB | 33.7% do peso
+- FLAC: 163 faixas | 3.62 GB | 0.4% do peso
 - Cobertura em FLAC: Subgenre 100.0% | Album Type 100.0%
 - Cobertura em M4A: Subgenre 100.0% | Album Type 100.0%
 - Cobertura em MP3: Subgenre 100.0% | Album Type 100.0%
-- Reconciliação pasta × tag: 99.7% (fila de revisão: 410 casos, ADR-002)
+- Reconciliação pasta × tag: 99.6% (fila de revisão: 410 casos, ADR-002)
 <!-- /NUMEROS-AUTO -->
+
 
 
 
@@ -75,13 +76,13 @@ Zonas no lake S3 local (SeaweedFS, ADR-006), bucket `acervo-musical`:
 - `curated/` — Parquet particionado por década (hive)
 - `gold/` — agregados modelados (FASE 3, dbt)
 
-### Benchmark CSV × Parquet (acervo real, 117.580 faixas)
+### Benchmark CSV × Parquet (acervo real, 115.694 faixas)
 
 | Métrica | CSV | Parquet | Ganho |
 |---|---|---|---|
-| Tamanho | 45,7 MB | 12,6 MB | **3,6x menor** |
-| Leitura completa (pyarrow) | 0,04s | 0,10s | CSV vence (overhead fixo em escala pequena) |
-| Query analítica (DuckDB) | 0,22s | 0,04s | **5,4x mais rápido** |
+| Tamanho | 45,0 MB | 12,4 MB | **3,6x menor** |
+| Leitura completa (pyarrow) | 0,03s | 0,09s | CSV vence (overhead fixo em escala pequena) |
+| Query analítica (DuckDB) | 0,19s | 0,03s | **5,7x mais rápido** |
 
 Honestidade de escala: com 43 MB tudo cabe em memória e o overhead
 fixo de abrir 8 partições domina a leitura completa; o ganho colunar

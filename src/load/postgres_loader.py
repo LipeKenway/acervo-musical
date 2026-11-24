@@ -10,15 +10,24 @@ Incremento real: a tabela pipeline_state guarda o watermark
 (maior mtime_iso já carregado); cada run processa só linhas com
 mtime_iso > watermark. Segundo run seguido = 0 linhas.
 
+Modo espelho:
+  --sincronizar  além do upsert do delta, apaga do Postgres as
+                 linhas cujo path_hash não existe mais na prata.
+                 Deletes NÃO propagam por watermark (ele só vê
+                 novidades); o espelho é o caminho consciente
+                 (ADR-002: linha órfã é dívida conhecida, e este
+                 flag é a ferramenta de quitá-la).
+
 Credenciais: POSTGRES_USER/PASSWORD/DB do .env (bind 127.0.0.1).
 Service accounts (acervo_app / acervo_bi) entram no passo 5 da FASE 3.
 
-Uso: python src\load\postgres_loader.py
+Uso: python src\load\postgres_loader.py [--sincronizar]
 """
 
 import csv
 import hashlib
 import os
+import sys
 from pathlib import Path
 
 import psycopg2  # type: ignore[import-untyped]
@@ -179,7 +188,11 @@ def main() -> None:
 
     with PRATA.open(encoding="utf-8-sig") as fh:
         prata = list(csv.DictReader(fh))
-    pendentes = [linha for linha in prata if (linha["mtime_iso"] or "") > watermark]
+    if "--sincronizar" in sys.argv:
+        pendentes = prata  # modo espelho: ignora watermark, reflete tudo
+        print("Modo espelho (--sincronizar): watermark ignorado no upsert")
+    else:
+        pendentes = [linha for linha in prata if (linha["mtime_iso"] or "") > watermark]
     print(f"Prata: {len(prata):,} linhas | watermark atual: {watermark}")
     print(f"Pendentes (mtime > watermark): {len(pendentes):,}")
 
@@ -204,6 +217,21 @@ def main() -> None:
         print(f"✅ upsert de {len(valores):,} linhas | watermark -> {novo_wm}")
     else:
         print("✅ nada a carregar (idempotência: rerodar não duplica)")
+
+    if "--sincronizar" in sys.argv:
+        with PRATA.open(encoding="utf-8-sig") as fh:
+            hashes_prata = {path_hash(linha["raiz"], linha["caminho_relativo"]) for linha in csv.DictReader(fh)}
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT path_hash FROM prata_faixas")
+                orfas = {registro[0] for registro in cur.fetchall()} - hashes_prata
+                lote = sorted(orfas)
+                for i in range(0, len(lote), 1000):
+                    cur.execute(
+                        "DELETE FROM prata_faixas WHERE path_hash = ANY(%s)",
+                        (lote[i : i + 1000],),
+                    )
+        print(f"🧹 sincronização: {len(orfas):,} linhas órfas removidas do Postgres")
 
     with conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM prata_faixas")
